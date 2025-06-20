@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Quiz App</title>
+  <title>Quiz </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -20,14 +20,14 @@
   </div>
   <div class="quiz-container">
     <h2>Enter Quiz Number</h2>
-    <input type="number" id="quizNumber" placeholder="Enter Quiz No.." />
-    <button onclick="startQuiz()">Start</button>
-    <p id="message"></p>
-    <div id="quizArea"></div>
+    <input type="number" id="quizNumber" min="1" max="50" />
+    <button id="startBtn">Start Quiz</button>
+    <!-- Optional error message -->
+    <p id="errorMsg" style="color: red;"></p>
   </div>
   <div class="app">
     <h1>Simpal Quiz Html</h1>
-    <div class="quiz">
+    <div class="quiz" style="display: none;">
       <p id="timer">Time left: 15s</p>
       <h2 id="question">Question</h2>
       <div id="answer-buttons">
@@ -36,7 +36,7 @@
         <button class="btn">Answer 3</button>
         <button class="btn">Answer 4</button>
       </div>
-      <button id="next-btn">Next</button>
+      <button id="next-btn" style="display:none;">Next</button>
     </div>
   </div>
   <script src="script.js"></script>
