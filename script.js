@@ -90,6 +90,8 @@ const questions = [
         ]
     },
 ];
+const startBtn = document.getElementById("start-btn");
+const quizContainer = document.getElementById("quiz-container");
 const questionsElement = document.getElementById("question");
 const answerButtons = document.getElementById("answer-buttons");
 const nextButton = document.getElementById("next-btn");
@@ -99,11 +101,24 @@ let currentQuestionIndex = 0;
 let score = 0;
 let timer;
 let timeLeft = 15;
+let selectedQuestions = [];
 
+startBtn.addEventListener("click", () => {
+    const count = parseInt(document.getElementById("question-count").value);
+    if (isNaN(count) || count < 1) {
+        alert("Please enter a valid number of questions.");
+        return;
+    }
+
+    selectedQuestions = allQuestions.slice(0, count); // use random selection if needed
+    setupElement.style.display = "none";
+    quizElement.style.display = "block";
+    startQuiz();
+});
 
 function startQuiz() {
-    let currentQuestionIndex = 0;
-    let score = 0;
+    currentQuestionIndex = 0;
+    score = 0;
     nextButton.innerHTML = "Next";
     nextButton.style.display = "none";
     showQuestion();
@@ -131,6 +146,7 @@ function startTimer() {
 function resetTimer() {
     clearInterval(timer);
     timerElement.innerHTML = "";
+    timerElement.classList.remove("warning");
 }
 
 function showCorrectAnswerOnTimeout() {
@@ -192,6 +208,7 @@ function selectAnswer(e) {
 }
 function showScore() {
     resetState();
+    resetTimer();
     questionsElement.innerHTML = `You scored ${score} out of ${questions.length}!`;
     nextButton.innerHTML = "Play Again";
     nextButton.style.display = "block";
