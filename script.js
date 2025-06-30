@@ -272,3 +272,23 @@ nextBtn.addEventListener("click", () => {
         showScore();
     }
 });
+document.getElementById("loginForm").addEventListener("submit", function (e) {
+    e.preventDefault(); // Prevent the default form submission
+  
+    const form = e.target;
+    const formData = new FormData(form);
+  
+    fetch("login.php", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.text())
+      .then((data) => {
+        const msgDiv = document.getElementById("message");
+        msgDiv.innerHTML = data;
+        msgDiv.style.color = data.includes("successful") ? "green" : "red";
+      })
+      .catch((error) => {
+        document.getElementById("message").textContent = "An error occurred.";
+      });
+  });
