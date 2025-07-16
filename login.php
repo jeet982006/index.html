@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Logout</button>
       </form>
 
-      <a href="index.html" class="quiz-btn">Go to Quiz</a>
+      <a href="index.php" class="quiz-btn">Go to Quiz</a>
     </div>
   <?php else: ?>
     <form action="login.php" method="POST" class="login-form">
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <?php endif; ?>
 
       <button type="submit">Login</button>
-      <p>Don't have an account? <a href="register.html">Register</a></p>
+      <p>Don't have an account? <a href="register.php">Register</a></p>
     </form>
   <?php endif; ?>
 </div>
