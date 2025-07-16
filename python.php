@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     $score = intval($data['score']);
     $total = intval($data['total']);
 
-    $stmt = $conn->prepare("INSERT INTO php_scores (username, score, total_questions) VALUES (?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO python_scores (username, score, total_questions) VALUES (?, ?, ?)");
     $stmt->bind_param("sii", $username, $score, $total);
     $stmt->execute();
     $stmt->close();
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'top10') {
     require_once 'config.php';
 
-    $sql = "SELECT username, MAX(score) AS high_score FROM php_scores GROUP BY username ORDER BY high_score DESC LIMIT 10";
+    $sql = "SELECT username, MAX(score) AS high_score FROM python_scores GROUP BY username ORDER BY high_score DESC LIMIT 10";
     $result = $conn->query($sql);
 
     $top = [];
@@ -42,12 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
-  <title>Php Quiz</title>
+  <title>Python Quiz</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -69,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     <a href="index.php">HOME</a>
     <a href="html.php">HTML</a>
     <a href="java.php">JAVA</a>
-    <a href="python.php">PYTHON</a>
-    <a href="#" class="active">PHP</a>
+    <a href="#" class="active">PYTHON</a>
+    <a href="php.php">PHP</a>
     <a href="c++.php">C++</a>
   </nav>
 
@@ -135,203 +136,203 @@ function loadQuestionsForQuiz() {
     return [
         {
             type: "mcq",
-            question: "What does PHP stand for?",
+            question: "Who developed Python?",
             answers: [
-                { text: "Private Home Page", correct: false },
-                { text: "Personal Hypertext Processor", correct: false },
-                { text: "PHP: Hypertext Preprocessor", correct: true },
-                { text: "Preprocessed Hypertext Program", correct: false }
+                { text: "Guido van Rossum", correct: true },
+                { text: "Dennis Ritchie", correct: false },
+                { text: "Bjarne Stroustrup", correct: false },
+                { text: "James Gosling", correct: false }
             ]
         },
         {
             type: "mcq",
-            question: "Which symbol is used to declare a variable in PHP?",
+            question: "What is the extension of a Python file?",
             answers: [
-                { text: "#", correct: false },
-                { text: "$", correct: true },
-                { text: "@", correct: false },
-                { text: "&", correct: false }
+                { text: ".py", correct: true },
+                { text: ".python", correct: false },
+                { text: ".pyt", correct: false },
+                { text: ".pt", correct: false }
             ]
         },
         {
             type: "mcq",
-            question: "Which of the following is the correct way to start a PHP block?",
+            question: "Which keyword is used to define a function in Python?",
             answers: [
-                { text: "<script>", correct: false },
-                { text: "<?php", correct: true },
-                { text: "<?php>", correct: false },
-                { text: "<php>", correct: false }
+                { text: "function", correct: false },
+                { text: "def", correct: true },
+                { text: "fun", correct: false },
+                { text: "define", correct: false }
             ]
         },
         {
             type: "mcq",
-            question: "Which function is used to output text in PHP?",
+            question: "Which of the following is used to insert comments in Python?",
             answers: [
-                { text: "write()", correct: false },
-                { text: "echo", correct: true },
-                { text: "printText()", correct: false },
-                { text: "display()", correct: false }
+                { text: "//", correct: false },
+                { text: "#", correct: true },
+                { text: "/* */", correct: false },
+                { text: "--", correct: false }
             ]
         },
         {
             type: "mcq",
-            question: "What will `strlen('Hello')` return?",
+            question: "What is the output of: print(type([]))",
             answers: [
-                { text: "4", correct: false },
-                { text: "5", correct: true },
+                { text: "<class 'list'>", correct: true },
+                { text: "<class 'array'>", correct: false },
+                { text: "<list>", correct: false },
+                { text: "<array>", correct: false }
+            ]
+        },
+        {
+            type: "mcq",
+            question: "Which of these data types is immutable in Python?",
+            answers: [
+                { text: "list", correct: false },
+                { text: "set", correct: false },
+                { text: "tuple", correct: true },
+                { text: "dict", correct: false }
+            ]
+        },
+        {
+            type: "mcq",
+            question: "Which function is used to get user input in Python 3?",
+            answers: [
+                { text: "scan()", correct: false },
+                { text: "input()", correct: true },
+                { text: "get()", correct: false },
+                { text: "read()", correct: false }
+            ]
+        },
+        {
+            type: "mcq",
+            question: "Which keyword is used for loop in Python?",
+            answers: [
+                { text: "loop", correct: false },
+                { text: "repeat", correct: false },
+                { text: "for", correct: true },
+                { text: "iterate", correct: false }
+            ]
+        },
+        {
+            type: "mcq",
+            question: "What is the result of: 2 ** 3 in Python?",
+            answers: [
                 { text: "6", correct: false },
-                { text: "Error", correct: false }
+                { text: "8", correct: true },
+                { text: "9", correct: false },
+                { text: "5", correct: false }
             ]
         },
         {
             type: "mcq",
-            question: "Which operator is used to concatenate strings in PHP?",
+            question: "Which keyword is used to handle exceptions?",
             answers: [
-                { text: "+", correct: false },
-                { text: "&", correct: false },
-                { text: ".", correct: true },
-                { text: "concat", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which global variable contains form data sent with the POST method?",
-            answers: [
-                { text: "$_POST", correct: true },
-                { text: "$POST", correct: false },
-                { text: "$_FORM", correct: false },
-                { text: "$_REQUEST", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which superglobal holds session data?",
-            answers: [
-                { text: "$_COOKIE", correct: false },
-                { text: "$_SESSION", correct: true },
-                { text: "$_POST", correct: false },
-                { text: "$GLOBALS", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which keyword is used to create a function in PHP?",
-            answers: [
-                { text: "def", correct: false },
-                { text: "function", correct: true },
-                { text: "func", correct: false },
-                { text: "lambda", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "How do you end a PHP statement?",
-            answers: [
-                { text: ":", correct: false },
-                { text: ".", correct: false },
-                { text: ";", correct: true },
-                { text: "/", correct: false }
+                { text: "catch", correct: false },
+                { text: "except", correct: true },
+                { text: "error", correct: false },
+                { text: "throw", correct: false }
             ]
         },
         {
             type: "truefalse",
-            question: "PHP is a server-side scripting language.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "PHP code must be compiled before execution.",
+            question: "Python is a statically typed language.",
             correct: false
         },
         {
             type: "truefalse",
-            question: "Variables in PHP are case-sensitive.",
+            question: "Indentation is important in Python syntax.",
             correct: true
         },
         {
             type: "truefalse",
-            question: "The echo statement can be used to display output in PHP.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "PHP can be embedded inside HTML.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "The isset() function is used to check if a variable is null.",
-            correct: false // it checks if a variable is set and not null
-        },
-        {
-            type: "truefalse",
-            question: "PHP supports object-oriented programming.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "All PHP variables must start with a hash (#) symbol.",
+            question: "In Python, '==' is used for assignment.",
             correct: false
         },
         {
             type: "truefalse",
-            question: "Sessions are used to store data across multiple pages.",
+            question: "The 'elif' keyword stands for 'else if' in Python.",
             correct: true
         },
         {
             type: "truefalse",
-            question: "PHP files must always be named with a .php extension.",
+            question: "Python supports both procedural and object-oriented programming.",
+            correct: true
+        },
+        {
+            type: "truefalse",
+            question: "Lists in Python are mutable.",
+            correct: true
+        },
+        {
+            type: "truefalse",
+            question: "The 'lambda' keyword is used to create anonymous functions.",
+            correct: true
+        },
+        {
+            type: "truefalse",
+            question: "Python does not support recursion.",
             correct: false
         },
         {
-            type: "fillblank",
-            question: "PHP files usually have the extension _____ .",
-            correctAnswer: ".php"
+            type: "truefalse",
+            question: "The 'global' keyword is used to access global variables.",
+            correct: true
+        },
+        {
+            type: "truefalse",
+            question: "Python was released after Java.",
+            correct: true
         },
         {
             type: "fillblank",
-            question: "To start a PHP script, use the tag _____ .",
-            correctAnswer: "<?php"
+            question: "The keyword used to define a function in Python is _____ .",
+            correctAnswer: "def"
         },
         {
             type: "fillblank",
-            question: "To print text in PHP, use the _____ statement.",
-            correctAnswer: "echo"
+            question: "To include comments in Python, we use the _____ symbol.",
+            correctAnswer: "#"
         },
         {
             type: "fillblank",
-            question: "The _____ function checks if a variable is set and not null.",
-            correctAnswer: "isset"
+            question: "To raise an exception in Python, use the _____ keyword.",
+            correctAnswer: "raise"
         },
         {
             type: "fillblank",
-            question: "To define a constant in PHP, use the _____ function.",
-            correctAnswer: "define"
+            question: "The _____ function is used to display output in Python.",
+            correctAnswer: "print"
         },
         {
             type: "fillblank",
-            question: "The _____ function is used to get the length of a string.",
-            correctAnswer: "strlen"
+            question: "The _____ function is used to read user input in Python.",
+            correctAnswer: "input"
         },
         {
             type: "fillblank",
-            question: "The _____ array contains values sent via the URL.",
-            correctAnswer: "$_GET"
+            question: "A collection of key-value pairs is stored in a _____ in Python.",
+            correctAnswer: "dictionary"
         },
         {
             type: "fillblank",
-            question: "The _____ keyword is used to declare a function in PHP.",
-            correctAnswer: "function"
+            question: "The keyword _____ is used to define a class in Python.",
+            correctAnswer: "class"
         },
         {
             type: "fillblank",
-            question: "The _____ function is used to start a session in PHP.",
-            correctAnswer: "session_start"
+            question: "Python files are saved with the _____ extension.",
+            correctAnswer: ".py"
         },
         {
             type: "fillblank",
-            question: "The operator _____ is used to concatenate strings in PHP.",
-            correctAnswer: "."
+            question: "The _____ keyword is used to handle exceptions.",
+            correctAnswer: "except"
+        },
+        {
+            type: "fillblank",
+            question: "To create a loop that runs a set number of times, use the _____ loop.",
+            correctAnswer: "for"
         }
     ];
 }
@@ -563,7 +564,7 @@ function showScore() {
     document.querySelector(".leaderboard").style.display = "block";
 
     // Save score to server using html.php
-    fetch("php.php?action=save_score", {
+    fetch("python.php?action=save_score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -572,7 +573,7 @@ function showScore() {
         })
     }).then(() => {
         // Fetch top 10 after saving
-        fetch("php.php?action=top10")
+        fetch("python.php?action=top10")
             .then(response => response.json())
             .then(data => {
                 const tbody = document.getElementById("leaderboard-body");
@@ -656,6 +657,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
 </script>
 </body>
 </html>
