@@ -41,10 +41,21 @@ $conn->close();
     
 </head>
 <body>
-
-<h1>Welcome, <?= htmlspecialchars($username) ?></h1>
+    
+<!-- Navigation Buttons -->
+<div class="nav-buttons">
+    <h1>Welcome, <?= htmlspecialchars($username) ?></h1>
+    <div class="nav-links">
+        <a href="index.php" class="nav-button">🏠 Home</a>
+        <a href="logout.php" class="nav-button logout-button">🔒 Logout</a>
+    </div>
+</div>
 <h2>Your Quiz History</h2>
 
+<?php
+$grandTotalScore = 0;
+$grandTotalQuestions = 0;
+?>
 <?php foreach ($userScores as $subject => $scores): ?>
     <h3><?= $subject ?> Quiz</h3>
     <?php if (count($scores) > 0): ?>
@@ -54,18 +65,30 @@ $conn->close();
                 <th>Total Questions</th>
                 <th>Submitted At</th>
             </tr>
-            <?php foreach ($scores as $row): ?>
+            <?php
+            $totalScore = 0;
+            $totalQuestions = 0;
+            foreach ($scores as $row):
+                $totalScore += $row['score'];
+                $totalQuestions += $row['total_questions'];
+            ?>
                 <tr>
                     <td><?= $row['score'] ?></td>
                     <td><?= $row['total_questions'] ?></td>
                     <td><?= $row['submitted_at'] ?></td>
                 </tr>
             <?php endforeach; ?>
+            <tr style="font-weight: bold; background-color: #050000ff;">
+                <td>Total=<?= $totalScore ?></td>
+                <td>Total=<?= $totalQuestions ?></td>
+                <td>-</td>
+            </tr>
         </table>
     <?php else: ?>
         <p>No records for <?= $subject ?> quiz.</p>
     <?php endif; ?>
 <?php endforeach; ?>
+
 
 </body>
 </html>
