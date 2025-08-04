@@ -25,16 +25,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     echo "Score saved successfully!";
     exit;
 }
+// Handle leaderboard fetch
+if ($_SERVER['REQUEST_METHOD'] === 'GET'
+    && isset($_GET['action'])
+    && $_GET['action'] === 'top10') {
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'top10') {
     require_once 'config.php';
 
-    $sql = "SELECT username, MAX(score) AS high_score FROM php_scores GROUP BY username ORDER BY high_score DESC LIMIT 10";
+    $sql = "
+        SELECT username,
+               SUM(score) AS total_score,
+               SUM(total_questions) AS total_questions
+        FROM php_scores
+        GROUP BY username
+        ORDER BY total_score DESC
+        LIMIT 10
+    ";
     $result = $conn->query($sql);
 
     $top = [];
     while ($row = $result->fetch_assoc()) {
-        $top[] = $row;
+        $top[] = [
+            'username'        => $row['username'],
+            'total_score'     => (int) $row['total_score'],
+            'total_questions' => (int) $row['total_questions']
+        ];
     }
 
     header('Content-Type: application/json');
@@ -56,13 +71,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 
   <!-- Header -->
   <header class="site-header">
-    <div class="header-container">
-      <h1>Quiz For Computer Languages</h1>
-      <button id="menu-toggle" aria-label="Toggle Menu">&#9776;</button>
-      <a href="login.php">Login</a>
-      <a href="register.php">Register</a>
-    </div>
-  </header>
+  <div class="header-container">
+    <h1>Quiz For Computer Languages</h1>
+    <button id="menu-toggle" aria-label="Toggle Menu">&#9776;</button>
+    <nav id="nav-links">
+      <?php if (isset($_SESSION['username'])): ?>
+        <a href="profile.php">Profile</a>
+        <a href="logout.php">Logout</a>
+      <?php else: ?>
+        <a href="login.php">Login</a>
+        <a href="register.php">Register</a>
+      <?php endif; ?>
+    </nav>
+  </div>
+</header>
 
   <!-- Navigation Menu -->
   <nav class="menu" id="main-menu">
@@ -77,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
   <!-- Quiz Entry Section -->
   <div class="quiz-container">
     <h2>Enter Quiz Number</h2>
-    <input type="number" id="quizNumber" min="1" max="50" />
+    <input type="number" id="quizNumber" min="1" max="20" />
     <button id="startBtn">Start Quiz</button>
     <p id="errorMsg" style="color: red;"></p>
   </div>
@@ -85,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
   <!-- Quiz Section -->
   <div class="app">
     <div class="heading-row">
-      <h1>Quiz Html</h1>
+      <h1>Quiz Php</h1>
       <span id="timer">Time left: 15s</span>
     </div>
     <div class="quiz" style="display: none;">
@@ -115,11 +137,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         <tr>
           <th>Rank</th>
           <th>Username</th>
-          <th>Score</th>
+          <th>Total Score</th>
+          <th>Total Question</th>
         </tr>
       </thead>
       <tbody id="leaderboard-body">
-        <tr><td colspan="3">Loading...</td></tr>
+        <tr><td colspan="4">Loading...</td></tr>
       </tbody>
     </table>
     <button onclick="location.reload()" class="btn">Play Again</button>
@@ -158,8 +181,8 @@ function loadQuestionsForQuiz() {
             question: "Which of the following is the correct way to start a PHP block?",
             answers: [
                 { text: "<script>", correct: false },
-                { text: "<?php", correct: true },
-                { text: "<?php>", correct: false },
+                { text: "< ?php", correct: true },
+                { text: "< ?php>", correct: false },
                 { text: "<php>", correct: false }
             ]
         },
@@ -562,7 +585,7 @@ function showScore() {
     // Show leaderboard section
     document.querySelector(".leaderboard").style.display = "block";
 
-    // Save score to server using html.php
+    // Save score to server using php.php
     fetch("php.php?action=save_score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -573,26 +596,31 @@ function showScore() {
     }).then(() => {
         // Fetch top 10 after saving
         fetch("php.php?action=top10")
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.getElementById("leaderboard-body");
-                tbody.innerHTML = "";
+  .then(response => {
+    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+    return response.json();
+  })
+  .then(data => {
+    const tbody = document.getElementById("leaderboard-body");
+    tbody.innerHTML = "";
 
-                data.forEach((user, index) => {
-                    const row = document.createElement("tr");
-                    row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${user.username}</td>
-                        <td>${user.high_score}</td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            })
-            .catch(error => {
-                document.getElementById("leaderboard-body").innerHTML = `
-                    <tr><td colspan="3">Error loading leaderboard.</td></tr>
-                `;
-            });
+    data.forEach((user, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${user.username}</td>
+        <td>${user.total_score}</td>
+        <td>${user.total_questions}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  })
+  .catch(error => {
+    console.error("Leaderboard fetch error:", error);
+    document.getElementById("leaderboard-body").innerHTML = `
+      <tr><td colspan="4">Error loading leaderboard.</td></tr>
+    `;
+  });
     }).catch(error => {
         console.error("Score saving failed:", error);
     });
@@ -658,4 +686,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 </body>
-</html>
+</html>     
