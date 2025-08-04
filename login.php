@@ -1,17 +1,18 @@
 <?php
 session_start();
 
+// If already logged in, skip login form
+if (isset($_SESSION['username'])) {
+    header("Location: profile.php");
+    exit;
+}
+
 $error = '';
 $success = '';
 
 if (isset($_SESSION['error_message'])) {
     $error = $_SESSION['error_message'];
     unset($_SESSION['error_message']);
-}
-
-if (isset($_SESSION['success_message'])) {
-    $success = $_SESSION['success_message'];
-    unset($_SESSION['success_message']);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (password_verify($password, $user['password'])) {
             $_SESSION['username'] = $user['username'];
             $_SESSION['success_message'] = "Login successful!";
-            header("Location: login.php");
+            header("Location: profile.php"); // ✅ Redirect directly to profile
             exit;
         } else {
             $_SESSION['error_message'] = "Incorrect password.";
@@ -60,7 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->close();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,35 +71,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
 <div class="container">
-  <?php if (isset($_SESSION['username'])): ?>
-    <div class="welcome-box">
-      <p>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</p>
+  <form action="login.php" method="POST" class="login-form">
+    <h2>Login</h2>
 
-      <form action="logout.php" method="POST" style="display:inline-block; margin-right: 10px;">
-        <button type="submit">Logout</button>
-      </form>
+    <input type="text" name="user_identifier" placeholder="Username or Email" required><br>
+    <input type="password" name="password" placeholder="Password" required><br>
 
-      <a href="index.php" class="quiz-btn">Go to Quiz</a>
-    </div>
-  <?php else: ?>
-    <form action="login.php" method="POST" class="login-form">
-      <h2>Login</h2>
+    <?php if (!empty($error)): ?>
+      <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
 
-      <input type="text" name="user_identifier" placeholder="Username or Email" required><br>
-      <input type="password" name="password" placeholder="Password" required><br>
-
-      <?php if (!empty($error)): ?>
-        <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
-      <?php endif; ?>
-
-      <?php if (!empty($success)): ?>
-        <div class="success-message"><?php echo htmlspecialchars($success); ?></div>
-      <?php endif; ?>
-
-      <button type="submit">Login</button>
-      <p>Don't have an account? <a href="register.php">Register</a></p>
-    </form>
-  <?php endif; ?>
+    <button type="submit">Login</button>
+    <p>Don't have an account? <a href="register.php">Register</a></p>
+  </form>
 </div>
 
 </body>
