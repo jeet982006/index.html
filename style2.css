@@ -1,3 +1,4 @@
+/* Base Page Styling */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #121212;
@@ -6,12 +7,14 @@ body {
   min-height: 100vh;
 }
 
+/* Headings */
 h1 {
   color: #bb86fc;
-  margin-bottom: 20px;
   font-size: 2rem;
+  margin: 0;
 }
 
+/* Subheadings */
 h2 {
   color: #bb86fc;
   margin-top: 40px;
@@ -24,16 +27,24 @@ h3 {
   margin-top: 30px;
   color: #03dac6;
   font-weight: 600;
+  text-align: center;
+}
+
+/* Tables */
+.table-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
 }
 
 table {
   width: 80%;
   max-width: 900px;
-  margin-bottom: 40px;
+  margin: 0 auto 40px auto;
   border-collapse: collapse;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   background-color: #1f1f1f;
 }
 
@@ -58,15 +69,85 @@ tbody tr:last-child td {
   border-bottom: none;
 }
 
+/* Paragraph for no records */
 p {
   font-style: italic;
   color: #999;
   margin-left: 10px;
+  text-align: center;
 }
 
-/* Responsive */
+/* Navigation Layout */
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+/* Group of links on the left */
+.nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+/* Heading on the right */
+.nav-buttons h1 {
+  white-space: nowrap;
+  font-size: 2rem;
+  color: #bb86fc;
+  margin: 0;
+}
+
+/* Buttons */
+.nav-button {
+  display: inline-block;
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 16px;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.nav-button:hover {
+  background-color: #45a049;
+}
+
+/* Logout-specific button */
+.logout-button {
+  background-color: #e53935;
+}
+
+.logout-button:hover {
+  background-color: #c62828;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
   table {
     width: 100%;
+  }
+
+  .nav-buttons {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .nav-button {
+    width: fit-content;
+  }
+
+  .nav-buttons h1 {
+    font-size: 1.5rem;
+    margin-top: 15px;
   }
 }
