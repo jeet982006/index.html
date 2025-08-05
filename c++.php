@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
         SELECT username,
                SUM(score) AS total_score,
                SUM(total_questions) AS total_questions
-        FROM c++_scores
+        FROM cpp_scores
         GROUP BY username
         ORDER BY total_score DESC
         LIMIT 10
