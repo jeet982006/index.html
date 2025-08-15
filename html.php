@@ -148,8 +148,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
         <tr><td colspan="4">Loading...</td></tr>
       </tbody>
     </table>
-    <button onclick="location.reload()" class="btn">Play Again</button>
+    <div>
+        <button onclick="location.reload()" class="btn">Play Again</button>
+        <button id="viewAttemptsBtn" class="btn">View Attempted Questions</button>
+    </div>
+</div>
+
+<!-- Attempted Questions Popup -->
+<div id="attemptedPopup">
+  <div class="popup-content">
+    <span class="close-btn" id="closeAttempted">&times;</span>
+    <h3 class="attempt-title">📋 Your Attempted Questions</h3>
+    <ol id="attemptList"></ol>
   </div>
+</div>
 
   <!-- Footer -->
   <footer class="site-footer">
@@ -185,30 +197,30 @@ function loadQuestionsForQuiz() {
             type: "mcq",
             question: "What is the correct HTML element for the largest heading?",
             answers: [
-                { text: "< heading >", correct: false },
-                { text: "< h6 >", correct: false },
-                { text: "< h1 >", correct: true },
-                { text: "< head >", correct: false },
+                { text: "<heading>", correct: false },
+                { text: "<h6>", correct: false },
+                { text: "<h1>", correct: true },
+                { text: "<head>", correct: false },
             ]
         },
         {
             type: "mcq",
             question: "Which tag is used to create a hyperlink in HTML?",
             answers: [
-                { text: "< hyperlink >", correct: false },
-                { text: "< a >", correct: true },
-                { text: "< link >", correct: false },
-                { text: "< href >", correct: false },
+                { text: "<hyperlink>", correct: false },
+                { text: "<a>", correct: true },
+                { text: "<link>", correct: false },
+                { text: "<href>", correct: false },
             ]
         },
         {
             type: "mcq",
             question: "What is the correct HTML element for inserting a line break?",
             answers: [
-                { text: "< br >", correct: true },
-                { text: "< lb >", correct: false },
-                { text: "< break >", correct: false },
-                { text: "< hr >", correct: false },
+                { text: "<br>", correct: true },
+                { text: "<lb>", correct: false },
+                { text: "<break>", correct: false },
+                { text: "<hr>", correct: false },
             ]
         },
         {
@@ -223,7 +235,7 @@ function loadQuestionsForQuiz() {
         },
         {
             type: "mcq",
-            question: "What does the < title > tag do in HTML?",
+            question: "What does the <title> tag do in HTML?",
             answers: [
                 { text: "Sets the page background", correct: false },
                 { text: "Displays text in the body", correct: false },
@@ -235,30 +247,30 @@ function loadQuestionsForQuiz() {
             type: "mcq",
             question: "Which tag is used to define a table row?",
             answers: [
-                { text: "< td >", correct: false },
-                { text: "< th >", correct: false },
-                { text: "< table >", correct: false },
-                { text: "< tr >", correct: true },
+                { text: "<td>", correct: false },
+                { text: "<th>", correct: false },
+                { text: "<table>", correct: false },
+                { text: "<tr>", correct: true },
             ]
         },
         {
             type: "mcq",
             question: "Which tag is used to create an unordered list in HTML?",
             answers: [
-                { text: "< ul >", correct: true },
-                { text: "< ol >", correct: false },
-                { text: "< li >", correct: false },
-                { text: "< list >", correct: false },
+                { text: "<ul>", correct: true },
+                { text: "<ol>", correct: false },
+                { text: "<li>", correct: false },
+                { text: "<list>", correct: false },
             ]
         },
         {
             type: "mcq",
             question: "Which HTML tag is used to display an image on a webpage?",
             answers: [
-                { text: "< img >", correct: true },
-                { text: "< image >", correct: false },
-                { text: "< pic >", correct: false },
-                { text: "< src >", correct: false },
+                { text: "<img>", correct: true },
+                { text: "<image>", correct: false },
+                { text: "<pic>", correct: false },
+                { text: "<src>", correct: false },
             ]
         },
         {
@@ -382,8 +394,17 @@ let currentQuestionIndex = 0;
 let score = 0;
 let timer;
 let timeLeft = 15;
+let attemptedQuestions = [];
 
-// Limit input max value to 50
+// Escape HTML tags in question text
+function escapeHTML(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
+// Limit input max value to 20
 quizInput.addEventListener("input", () => {
     let value = parseInt(quizInput.value, 10);
     if (value > 20) {
@@ -445,7 +466,8 @@ function showQuestion() {
             btn.onclick = selectAnswer;
             answerButtons.appendChild(btn);
         });
-    } else if (current.type === "truefalse") {
+    } 
+    else if (current.type === "truefalse") {
         ["True", "False"].forEach(val => {
             const btn = document.createElement("button");
             btn.classList.add("btn");
@@ -454,7 +476,8 @@ function showQuestion() {
             btn.onclick = selectAnswer;
             answerButtons.appendChild(btn);
         });
-    } else if (current.type === "fillblank") {
+    } 
+    else if (current.type === "fillblank") {
         const input = document.createElement("input");
         input.type = "text";
         input.id = "fillInput";
@@ -467,10 +490,16 @@ function showQuestion() {
         submitBtn.classList.add("btn");
 
         submitBtn.onclick = () => {
-            clearInterval(timer); // ✅ Stop timer when submitted
+            clearInterval(timer);
 
             const userAnswer = input.value.trim().toLowerCase();
             const correct = current.correctAnswer.toLowerCase();
+
+            attemptedQuestions.push({
+                question: escapeHTML(selectedQuestions[currentQuestionIndex].question),
+                userAnswer: userAnswer,
+                correctAnswer: selectedQuestions[currentQuestionIndex].correctAnswer
+            });
 
             if (userAnswer === correct) {
                 score++;
@@ -482,16 +511,14 @@ function showQuestion() {
 
             input.disabled = true;
             submitBtn.disabled = true;
-            nextBtn.style.display = "block";
+            nextBtn.style.display = "block";    
         };
-
         answerButtons.appendChild(submitBtn);
     }
 
     nextBtn.style.display = "none";
     startTimer();
 }
-
 
 function resetState() {
     nextBtn.style.display = "none";
@@ -530,35 +557,61 @@ function showCorrectAnswerOnTimeout() {
 
     if (current.type === "fillblank") {
         const input = document.getElementById("fillInput");
+        let userAns = "";
         if (input && !input.disabled) {
+            userAns = input.value.trim();
             input.classList.add("incorrect");
             input.value = ` (Correct: ${current.correctAnswer})`;
             input.disabled = true;
         }
+        attemptedQuestions.push({
+            question: escapeHTML(current.question),
+            userAnswer: userAns || "No answer",
+            correctAnswer: current.correctAnswer
+        });
 
         const submitBtn = answerButtons.querySelector("button");
-        if (submitBtn) {
-            submitBtn.disabled = true;
+        if (submitBtn) submitBtn.disabled = true;
+    } 
+    else {
+        let correctText = "";
+        if (current.type === "mcq" && current.answers) {
+            const ok = current.answers.find(a => a.correct);
+            correctText = ok ? ok.text : "";
+        } else if (current.type === "truefalse") {
+            correctText = current.correct ? "True" : "False";
         }
 
-    } else {
         Array.from(answerButtons.children).forEach(button => {
-            if (button.dataset.correct === "true") {
-                button.classList.add("correct");
-            }
+            if (button.dataset.correct === "true") button.classList.add("correct");
             button.disabled = true;
         });
-    }
 
+        attemptedQuestions.push({
+            question: escapeHTML(current.question),
+            userAnswer: "No answer",
+            correctAnswer: correctText || current.correctAnswer || ""
+        });
+    }
     nextBtn.style.display = "block";
 }
-
 
 function selectAnswer(e) {
     clearInterval(timer);
 
     const selectedBtn = e.target;
     const isCorrect = selectedBtn.dataset.correct === "true";
+    const current = selectedQuestions[currentQuestionIndex];
+
+    attemptedQuestions.push({
+        question: escapeHTML(current.question),
+        userAnswer: selectedBtn.textContent,
+        correctAnswer: current.type === "mcq" || current.type === "truefalse"
+            ? (current.answers
+                ? current.answers.find(ans => ans.correct)?.text
+                : (current.correct ? "True" : "False"))
+            : current.correctAnswer
+    });
 
     if (isCorrect) {
         selectedBtn.classList.add("correct");
@@ -578,19 +631,47 @@ function selectAnswer(e) {
     resetTimer();
 }
 
+function escapeTags(str) {
+    return String(str)
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
 function showScore() {
     resetState();
     resetTimer();
 
     document.getElementById("finalScore").innerText = `${score} / ${selectedQuestions.length}`;
 
-    // Hide quiz UI
     document.querySelector(".app").style.display = "none";
-
-    // Show leaderboard section
     document.querySelector(".leaderboard").style.display = "block";
 
-    // Save score to server using html.php
+    const attemptList = document.getElementById("attemptList");
+    attemptList.innerHTML = "";
+
+    attemptedQuestions.forEach((item, index) => {
+        // Use raw for checking, escape for display
+        const rawUserAns = item.userAnswer && item.userAnswer.trim() !== "" ? item.userAnswer : "No answer";
+        const rawCorrectAns = item.correctAnswer || "";
+
+        const isCorrect = rawUserAns.trim().toLowerCase() === rawCorrectAns.trim().toLowerCase();
+
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <div class="attempt-question">
+                <strong>${index + 1}.</strong> ${item.question} 
+            </div>
+            <div class="attempt-answer ${isCorrect ? 'correct' : 'incorrect'}">
+                Your Answer: ${escapeTags(rawUserAns)}
+            </div>
+            <div class="correct-answer">
+                Correct Answer: ${escapeTags(rawCorrectAns)}
+            </div>
+        `;
+        attemptList.appendChild(li);
+    });
+
+    // Save score to server
     fetch("html.php?action=save_score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -599,37 +680,30 @@ function showScore() {
             total: selectedQuestions.length
         })
     }).then(() => {
-        // Fetch top 10 after saving
         fetch("html.php?action=top10")
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-    return response.json();
-  })
-  .then(data => {
-    const tbody = document.getElementById("leaderboard-body");
-    tbody.innerHTML = "";
-
-    data.forEach((user, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${user.username}</td>
-        <td>${user.total_score}</td>
-        <td>${user.total_questions}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  })
-  .catch(error => {
-    console.error("Leaderboard fetch error:", error);
-    document.getElementById("leaderboard-body").innerHTML = `
-      <tr><td colspan="4">Error loading leaderboard.</td></tr>
-    `;
-  });
-    }).catch(error => {
-        console.error("Score saving failed:", error);
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("leaderboard-body");
+                tbody.innerHTML = "";
+                data.forEach((user, index) => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${user.username}</td>
+                            <td>${user.total_score}</td>
+                            <td>${user.total_questions}</td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(() => {
+                document.getElementById("leaderboard-body").innerHTML = `
+                    <tr><td colspan="4">Error loading leaderboard.</td></tr>
+                `;
+            });
     });
 }
+
 nextBtn.addEventListener("click", () => {
     if (nextBtn.textContent === "Play Again") {
         // Reset UI to start screen
@@ -648,45 +722,58 @@ nextBtn.addEventListener("click", () => {
         showScore();
     }
 });
-document.getElementById("loginForm").addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent the default form submission
+// =======================
+// LOGIN FORM HANDLER
+// =======================
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const formData = new FormData(loginForm);
+    fetch("login.php", { method: "POST", body: formData })
+      .then(r => r.text())
+      .then(data => {
+        const msgDiv = document.getElementById("message");
+        if (msgDiv) {
+          msgDiv.innerHTML = data;
+          msgDiv.style.color = data.includes("successful") ? "green" : "red";
+        }
+      })
+      .catch(() => {
+        const msgDiv = document.getElementById("message");
+        if (msgDiv) msgDiv.textContent = "An error occurred.";
+      });
+  });
+}
 
-    const form = e.target;
-    const formData = new FormData(form);
-
-    fetch("login.php", {
-        method: "POST",
-        body: formData,
-    })
-        .then((response) => response.text())
-        .then((data) => {
-            const msgDiv = document.getElementById("message");
-            msgDiv.innerHTML = data;
-            msgDiv.style.color = data.includes("successful") ? "green" : "red";
-        })
-        .catch((error) => {
-            document.getElementById("message").textContent = "An error occurred.";
-        });
-});
-// memu
+// =======================
+// ATTEMPTED QUESTIONS POPUP
+// =======================
 document.addEventListener("DOMContentLoaded", function () {
-    const toggleBtn = document.getElementById("menu-toggle");
-    const menu = document.getElementById("main-menu");
+  const attemptBtn = document.getElementById("viewAttemptsBtn");
+  const popup = document.getElementById("attemptedPopup");
+  const closeBtn = document.getElementById("closeAttempted");
 
-    if (toggleBtn && menu) {
-        toggleBtn.addEventListener("click", () => {
-            menu.classList.toggle("show");
-        });
+  if (attemptBtn) {
+    attemptBtn.addEventListener("click", () => {
+      popup.style.display = "flex"; // open popup
+    });
+  }
 
-        // Optional: Hide menu when link is clicked on small screens
-        const links = menu.querySelectorAll("a");
-        links.forEach(link => {
-            link.addEventListener("click", () => {
-                menu.classList.remove("show");
-            });
-        });
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      popup.style.display = "none"; // close popup
+    });
+  }
+
+  // Close popup if clicked outside content
+  popup.addEventListener("click", (e) => {
+    if (e.target === popup) {
+      popup.style.display = "none";
     }
+  });
 });
+
 
   </script>
 </body>
