@@ -408,29 +408,38 @@ quizInput.addEventListener("input", () => {
 });
 
 startBtn.addEventListener("click", () => {
-  const quizNum = parseInt(quizInput.value, 10);
+    const quizNum = parseInt(quizInput.value, 10);
 
-  if (!quizNum || quizNum < 1 || quizNum > 20) {
-    errorMsg.textContent = "Please enter a valid quiz number between 1 and 20.";
-    return;
-  }
+    // ✅ Validate quiz number input
+    if (isNaN(quizNum) || quizNum < 1 || quizNum > 20) {
+        errorMsg.textContent = "⚠ Please enter a valid quiz number between 1 and 20.";
+        quizInput.focus();
+        return;
+    }
 
-  errorMsg.textContent = "";
-  questions = loadQuestionsForQuiz();
+    errorMsg.textContent = "";
 
-  selectedQuestions = getRandomQuestions(questions, quizNum);
+    // ✅ Load all questions
+    questions = loadQuestionsForQuiz();
 
-  currentQuestionIndex = 0;
-  score = 0;
-  attemptedQuestions = []; // ✅ reset attempts each run
+    // ✅ Select quizNum random questions
+    selectedQuestions = getRandomQuestions(questions, quizNum);
 
-  quizContainer.style.display = "none";
-  app.style.display = "block";
-  quizDiv.style.display = "block";
+    // ✅ Reset quiz state
+    currentQuestionIndex = 0;
+    score = 0;
+    attemptedQuestions = []; // reset attempted questions for review
 
-  nextBtn.style.display = "none";
-  showQuestion();
+    // ✅ Switch UI to quiz view
+    quizContainer.style.display = "none";
+    app.style.display = "block";
+    quizDiv.style.display = "block";
+    nextBtn.style.display = "none";
+
+    // ✅ Start first question
+    showQuestion();
 });
+
 
 
 function getRandomQuestions(arr, n) {
