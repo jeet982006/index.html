@@ -417,28 +417,36 @@ quizInput.addEventListener("input", () => {
 startBtn.addEventListener("click", () => {
     const quizNum = parseInt(quizInput.value, 10);
 
-    if (!quizNum || quizNum < 1 || quizNum > 20) {
-        errorMsg.textContent = "Please enter a valid quiz number between 1 and 20.";
+    // ✅ Validate quiz number input
+    if (isNaN(quizNum) || quizNum < 1 || quizNum > 20) {
+        errorMsg.textContent = "⚠ Please enter a valid quiz number between 1 and 20.";
+        quizInput.focus();
         return;
     }
 
     errorMsg.textContent = "";
+
+    // ✅ Load all questions
     questions = loadQuestionsForQuiz();
 
-    // Select quizNum random questions (or all if less)
+    // ✅ Select quizNum random questions
     selectedQuestions = getRandomQuestions(questions, quizNum);
 
+    // ✅ Reset quiz state
     currentQuestionIndex = 0;
     score = 0;
+    attemptedQuestions = []; // reset attempted questions for review
 
-    // Hide start UI, show quiz UI
+    // ✅ Switch UI to quiz view
     quizContainer.style.display = "none";
     app.style.display = "block";
     quizDiv.style.display = "block";
-
     nextBtn.style.display = "none";
+
+    // ✅ Start first question
     showQuestion();
 });
+
 
 function getRandomQuestions(arr, n) {
     const shuffled = arr.slice().sort(() => 0.5 - Math.random());
