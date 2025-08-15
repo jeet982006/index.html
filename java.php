@@ -617,14 +617,6 @@ function selectAnswer(e) {
   nextBtn.style.display = "block";
   resetTimer();
 }
-function handleNextClick() {
-  currentQuestionIndex++;
-  if (currentQuestionIndex < selectedQuestions.length) {
-    showQuestion();
-  } else {
-    showScore();
-  }
-}
 
 function showScore() {
   resetState();
@@ -702,7 +694,12 @@ nextBtn.addEventListener("click", () => {
         return;
     }
 
-    nextBtn.onclick = handleNextClick;
+    currentQuestionIndex++;
+    if (currentQuestionIndex < selectedQuestions.length) {
+    showQuestion();
+    } else {
+    showScore();
+    }
 });
 
 /* ===========================
