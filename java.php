@@ -148,9 +148,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
         <tr><td colspan="4">Loading...</td></tr>
       </tbody>
     </table>
-    <button onclick="location.reload()" class="btn">Play Again</button>
+    <div>
+        <button class="btn" onclick="location.reload()">Play Again</button>
+        <button id="viewAttemptsBtn" class="btn">View Attempted Questions</button>
+    </div>
   </div>
-
+    <!-- Attempted Questions Popup -->
+<div id="attemptedPopup" style="display:none;">
+  <div class="popup-content">
+    <span class="close-btn" id="closeAttempted">&times;</span>
+    <h3 class="attempt-title">📋 Your Attempted Questions</h3>
+    <ol id="attemptList"></ol>
+  </div>
+</div>
   <!-- Footer -->
   <footer class="site-footer">
     <p>&copy; 2025 QuizWeb. All rights reserved.</p>
@@ -382,7 +392,11 @@ let currentQuestionIndex = 0;
 let score = 0;
 let timer;
 let timeLeft = 15;
+let attemptedQuestions = [];
 
+function escapeTags(str) {
+  return String(str).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
 // Limit input max value to 50
 quizInput.addEventListener("input", () => {
     let value = parseInt(quizInput.value, 10);
@@ -394,30 +408,30 @@ quizInput.addEventListener("input", () => {
 });
 
 startBtn.addEventListener("click", () => {
-    const quizNum = parseInt(quizInput.value, 10);
+  const quizNum = parseInt(quizInput.value, 10);
 
-    if (!quizNum || quizNum < 1 || quizNum > 20) {
-        errorMsg.textContent = "Please enter a valid quiz number between 1 and 20.";
-        return;
-    }
+  if (!quizNum || quizNum < 1 || quizNum > 20) {
+    errorMsg.textContent = "Please enter a valid quiz number between 1 and 20.";
+    return;
+  }
 
-    errorMsg.textContent = "";
-    questions = loadQuestionsForQuiz();
+  errorMsg.textContent = "";
+  questions = loadQuestionsForQuiz();
 
-    // Select quizNum random questions (or all if less)
-    selectedQuestions = getRandomQuestions(questions, quizNum);
+  selectedQuestions = getRandomQuestions(questions, quizNum);
 
-    currentQuestionIndex = 0;
-    score = 0;
+  currentQuestionIndex = 0;
+  score = 0;
+  attemptedQuestions = []; // ✅ reset attempts each run
 
-    // Hide start UI, show quiz UI
-    quizContainer.style.display = "none";
-    app.style.display = "block";
-    quizDiv.style.display = "block";
+  quizContainer.style.display = "none";
+  app.style.display = "block";
+  quizDiv.style.display = "block";
 
-    nextBtn.style.display = "none";
-    showQuestion();
+  nextBtn.style.display = "none";
+  showQuestion();
 });
+
 
 function getRandomQuestions(arr, n) {
     const shuffled = arr.slice().sort(() => 0.5 - Math.random());
@@ -425,74 +439,75 @@ function getRandomQuestions(arr, n) {
 }
 
 function showQuestion() {
-    resetState();
-    resetTimer();
+  resetState();
+  resetTimer();
 
-    if (currentQuestionIndex >= selectedQuestions.length) {
-        showScore();
-        return;
-    }
+  if (currentQuestionIndex >= selectedQuestions.length) {
+    showScore();
+    return;
+  }
 
-    const current = selectedQuestions[currentQuestionIndex];
-    questionEl.textContent = `${currentQuestionIndex + 1}. ${current.question}`;
+  const current = selectedQuestions[currentQuestionIndex];
+  questionEl.textContent = `${currentQuestionIndex + 1}. ${current.question}`;
 
-    if (current.type === "mcq") {
-        current.answers.forEach(ans => {
-            const btn = document.createElement("button");
-            btn.classList.add("btn");
-            btn.textContent = ans.text;
-            btn.dataset.correct = ans.correct;
-            btn.onclick = selectAnswer;
-            answerButtons.appendChild(btn);
-        });
-    } else if (current.type === "truefalse") {
-        ["True", "False"].forEach(val => {
-            const btn = document.createElement("button");
-            btn.classList.add("btn");
-            btn.textContent = val;
-            btn.dataset.correct = (val.toLowerCase() === String(current.correct).toLowerCase());
-            btn.onclick = selectAnswer;
-            answerButtons.appendChild(btn);
-        });
-    } else if (current.type === "fillblank") {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.id = "fillInput";
-        input.placeholder = "Type your answer here";
-        input.classList.add("btn");
-        answerButtons.appendChild(input);
+  if (current.type === "mcq") {
+    current.answers.forEach((ans) => {
+      const btn = document.createElement("button");
+      btn.classList.add("btn");
+      btn.textContent = ans.text;
+      btn.dataset.correct = ans.correct;
+      btn.onclick = selectAnswer;
+      answerButtons.appendChild(btn);
+    });
+  } else if (current.type === "truefalse") {
+    ["True", "False"].forEach((val) => {
+      const btn = document.createElement("button");
+      btn.classList.add("btn");
+      btn.textContent = val;
+      btn.dataset.correct = (val.toLowerCase() === String(current.correct).toLowerCase());
+      btn.onclick = selectAnswer;
+      answerButtons.appendChild(btn);
+    });
+  } else if (current.type === "fillblank") {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "fillInput";
+    input.placeholder = "Type your answer here";
+    input.classList.add("btn");
+    answerButtons.appendChild(input);
 
-        const submitBtn = document.createElement("button");
-        submitBtn.textContent = "Submit";
-        submitBtn.classList.add("btn");
+    const submitBtn = document.createElement("button");
+    submitBtn.textContent = "Submit";
+    submitBtn.classList.add("btn");
+    submitBtn.onclick = () => {
+      clearInterval(timer);
+      const userAnswer = input.value.trim();
+      const correct = String(current.correctAnswer).trim();
 
-        submitBtn.onclick = () => {
-            clearInterval(timer); // ✅ Stop timer when submitted
+      // Save attempt
+      attemptedQuestions.push({
+        question: current.question,
+        userAnswer: userAnswer || "No answer",
+        correctAnswer: correct
+      });
 
-            const userAnswer = input.value.trim().toLowerCase();
-            const correct = current.correctAnswer.toLowerCase();
+      if (userAnswer.toLowerCase() === correct.toLowerCase()) {
+        score++;
+        input.classList.add("correct");
+      } else {
+        input.classList.add("incorrect");
+        input.value = `${userAnswer}  (Correct: ${current.correctAnswer})`;
+      }
+      input.disabled = true;
+      submitBtn.disabled = true;
+      nextBtn.style.display = "block";
+    };
+    answerButtons.appendChild(submitBtn);
+  }
 
-            if (userAnswer === correct) {
-                score++;
-                input.classList.add("correct");
-            } else {
-                input.classList.add("incorrect");
-                input.value = `${userAnswer}  (Correct: ${current.correctAnswer})`;
-            }
-
-            input.disabled = true;
-            submitBtn.disabled = true;
-            nextBtn.style.display = "block";
-        };
-
-        answerButtons.appendChild(submitBtn);
-    }
-
-    nextBtn.style.display = "none";
-    startTimer();
+  nextBtn.style.display = "none";
+  startTimer();
 }
-
-
 function resetState() {
     nextBtn.style.display = "none";
     while (answerButtons.firstChild) {
@@ -526,89 +541,138 @@ function resetTimer() {
 }
 
 function showCorrectAnswerOnTimeout() {
-    const current = selectedQuestions[currentQuestionIndex];
+  const current = selectedQuestions[currentQuestionIndex];
 
-    if (current.type === "fillblank") {
-        const input = document.getElementById("fillInput");
-        if (input && !input.disabled) {
-            input.classList.add("incorrect");
-            input.value = ` (Correct: ${current.correctAnswer})`;
-            input.disabled = true;
-        }
+  if (current.type === "fillblank") {
+    const input = document.getElementById("fillInput");
+    let userAns = "";
+    if (input && !input.disabled) {
+      userAns = input.value.trim();
+      input.classList.add("incorrect");
+      input.value = ` (Correct: ${current.correctAnswer})`;
+      input.disabled = true;
+    }
+    attemptedQuestions.push({
+      question: current.question,
+      userAnswer: userAns || "No answer",
+      correctAnswer: current.correctAnswer
+    });
+    const submitBtn = answerButtons.querySelector("button");
+    if (submitBtn) submitBtn.disabled = true;
 
-        const submitBtn = answerButtons.querySelector("button");
-        if (submitBtn) {
-            submitBtn.disabled = true;
-        }
-
-    } else {
-        Array.from(answerButtons.children).forEach(button => {
-            if (button.dataset.correct === "true") {
-                button.classList.add("correct");
-            }
-            button.disabled = true;
-        });
+  } else {
+    // Find correct label
+    let correctText = "";
+    if (current.type === "mcq" && current.answers) {
+      const ok = current.answers.find(a => a.correct);
+      correctText = ok ? ok.text : "";
+    } else if (current.type === "truefalse") {
+      correctText = current.correct ? "True" : "False";
     }
 
-    nextBtn.style.display = "block";
-}
-
-
-function selectAnswer(e) {
-    clearInterval(timer);
-
-    const selectedBtn = e.target;
-    const isCorrect = selectedBtn.dataset.correct === "true";
-
-    if (isCorrect) {
-        selectedBtn.classList.add("correct");
-        score++;
-    } else {
-        selectedBtn.classList.add("incorrect");
-    }
-
-    Array.from(answerButtons.children).forEach(button => {
-        if (button.dataset.correct === "true") {
-            button.classList.add("correct");
-        }
-        button.disabled = true;
+    Array.from(answerButtons.children).forEach((button) => {
+      if (button.dataset.correct === "true") button.classList.add("correct");
+      button.disabled = true;
     });
 
-    nextBtn.style.display = "block";
-    resetTimer();
+    attemptedQuestions.push({
+      question: current.question,
+      userAnswer: "No answer",
+      correctAnswer: correctText || current.correctAnswer || ""
+    });
+  }
+
+  nextBtn.style.display = "block";
+}
+
+function selectAnswer(e) {
+  clearInterval(timer);
+  const selectedBtn = e.target;
+  const isCorrect = selectedBtn.dataset.correct === "true";
+  const current = selectedQuestions[currentQuestionIndex];
+
+  // Record attempt
+  attemptedQuestions.push({
+    question: current.question,
+    userAnswer: selectedBtn.textContent,
+    correctAnswer: (current.type === "mcq" || current.type === "truefalse")
+      ? (current.answers
+          ? (current.answers.find(ans => ans.correct)?.text || "")
+          : (current.correct ? "True" : "False"))
+      : (current.correctAnswer || "")
+  });
+
+  if (isCorrect) {
+    selectedBtn.classList.add("correct");
+    score++;
+  } else {
+    selectedBtn.classList.add("incorrect");
+  }
+
+  Array.from(answerButtons.children).forEach((button) => {
+    if (button.dataset.correct === "true") button.classList.add("correct");
+    button.disabled = true;
+  });
+
+  nextBtn.style.display = "block";
+  resetTimer();
+}
+function handleNextClick() {
+  currentQuestionIndex++;
+  if (currentQuestionIndex < selectedQuestions.length) {
+    showQuestion();
+  } else {
+    showScore();
+  }
 }
 
 function showScore() {
-    resetState();
-    resetTimer();
+  resetState();
+  resetTimer();
 
-    document.getElementById("finalScore").innerText = `${score} / ${selectedQuestions.length}`;
+  document.getElementById("finalScore").innerText =
+    `${score} / ${selectedQuestions.length}`;
 
-    // Hide quiz UI
-    document.querySelector(".app").style.display = "none";
+  document.querySelector(".app").style.display = "none";
+  document.querySelector(".leaderboard").style.display = "block";
 
-    // Show leaderboard section
-    document.querySelector(".leaderboard").style.display = "block";
+  // Populate Attempted popup
+  const attemptList = document.getElementById("attemptList");
+  attemptList.innerHTML = "";
+  attemptedQuestions.forEach((item, index) => {
+    const rawUser = item.userAnswer && item.userAnswer.trim() !== "" ? item.userAnswer : "No answer";
+    const rawCorrect = item.correctAnswer || "";
+    const isCorrect = rawUser.trim().toLowerCase() === rawCorrect.trim().toLowerCase();
 
-    // Save score to server using java.php
-    fetch("java.php?action=save_score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            score: score,
-            total: selectedQuestions.length
-        })
-    }).then(() => {
-        // Fetch top 10 after saving
-        fetch("java.php?action=top10")
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-    return response.json();
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div class="attempt-question">
+        <strong>${index + 1}.</strong> ${escapeTags(item.question)}
+      </div>
+      <div class="attempt-answer ${isCorrect ? 'correct' : 'incorrect'}">
+        Your Answer: ${escapeTags(rawUser)}
+      </div>
+      <div class="correct-answer">
+        Correct Answer: ${escapeTags(rawCorrect)}
+      </div>
+    `;
+    attemptList.appendChild(li);
+  });
+
+  // Save score then load leaderboard
+  fetch("java.php?action=save_score", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ score: score, total: selectedQuestions.length })
+  })
+  .then(() => fetch("java.php?action=top10"))
+  .then(res => {
+    if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+    return res.json();
   })
   .then(data => {
     const tbody = document.getElementById("leaderboard-body");
     tbody.innerHTML = "";
-
     data.forEach((user, index) => {
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -620,16 +684,12 @@ function showScore() {
       tbody.appendChild(row);
     });
   })
-  .catch(error => {
-    console.error("Leaderboard fetch error:", error);
-    document.getElementById("leaderboard-body").innerHTML = `
-      <tr><td colspan="4">Error loading leaderboard.</td></tr>
-    `;
+  .catch(() => {
+    document.getElementById("leaderboard-body").innerHTML =
+      `<tr><td colspan="4">Error loading leaderboard.</td></tr>`;
   });
-    }).catch(error => {
-        console.error("Score saving failed:", error);
-    });
 }
+
 
 nextBtn.addEventListener("click", () => {
     if (nextBtn.textContent === "Play Again") {
@@ -642,52 +702,47 @@ nextBtn.addEventListener("click", () => {
         return;
     }
 
-    currentQuestionIndex++;
-    if (currentQuestionIndex < selectedQuestions.length) {
-        showQuestion();
-    } else {
-        showScore();
-    }
+    nextBtn.onclick = handleNextClick;
 });
-document.getElementById("loginForm").addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent the default form submission
 
-    const form = e.target;
-    const formData = new FormData(form);
+/* ===========================
+   Attempted Popup
+   =========================== */
+   document.addEventListener("DOMContentLoaded", function () {
+  const attemptBtn = document.getElementById("viewAttemptsBtn");
+  const popup = document.getElementById("attemptedPopup");
+  const closeBtn = document.getElementById("closeAttempted");
 
-    fetch("login.php", {
-        method: "POST",
-        body: formData,
-    })
-        .then((response) => response.text())
-        .then((data) => {
-            const msgDiv = document.getElementById("message");
-            msgDiv.innerHTML = data;
-            msgDiv.style.color = data.includes("successful") ? "green" : "red";
-        })
-        .catch((error) => {
-            document.getElementById("message").textContent = "An error occurred.";
-        });
+  if (attemptBtn) attemptBtn.addEventListener("click", () => { popup.style.display = "flex"; });
+  if (closeBtn) closeBtn.addEventListener("click", () => { popup.style.display = "none"; });
+  if (popup) popup.addEventListener("click", (e) => { if (e.target === popup) popup.style.display = "none"; });
+
 });
-// memu
-document.addEventListener("DOMContentLoaded", function () {
-    const toggleBtn = document.getElementById("menu-toggle");
-    const menu = document.getElementById("main-menu");
 
-    if (toggleBtn && menu) {
-        toggleBtn.addEventListener("click", () => {
-            menu.classList.toggle("show");
-        });
+/* ===========================
+   Login form (if present)
+   =========================== */
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const formData = new FormData(loginForm);
+    fetch("login.php", { method:"POST", body:formData })
+      .then(r => r.text())
+      .then(html => {
+        const msg = document.getElementById("message");
+        if (msg) {
+          msg.innerHTML = html;
+          msg.style.color = html.includes("successful") ? "green" : "red";
+        }
+      })
+      .catch(() => {
+        const msg = document.getElementById("message");
+        if (msg) msg.textContent = "An error occurred.";
+      });
+  });
+}
 
-        // Optional: Hide menu when link is clicked on small screens
-        const links = menu.querySelectorAll("a");
-        links.forEach(link => {
-            link.addEventListener("click", () => {
-                menu.classList.remove("show");
-            });
-        });
-    }
-});
 </script>
 </body>
 </html> 
