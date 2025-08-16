@@ -69,7 +69,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
 
 <body>
 
-  <!-- Header -->
   <header class="site-header">
   <div class="header-container">
     <h1>Quiz For Computer Languages</h1>
@@ -86,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
   </div>
 </header>
 
-  <!-- Navigation Menu -->
   <nav class="menu" id="main-menu">
     <a href="index.php">HOME</a>
     <a href="html.php">HTML</a>
@@ -96,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
     <a href="c++.php">C++</a>
   </nav>
 
-  <!-- Quiz Entry Section -->
   <div class="quiz-container">
     <h2>Enter Quiz Number</h2>
     <input type="number" id="quizNumber" min="1" max="20" />
@@ -104,7 +101,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
     <p id="errorMsg" style="color: red;"></p>
   </div>
 
-  <!-- Quiz Section -->
   <div class="app">
     <div class="heading-row">
       <h1>Quiz Php</h1>
@@ -113,13 +109,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
     <div class="quiz" style="display: none;">
       <h2 id="question">Question</h2>
       <div id="answer-buttons">
-        <!-- Buttons will be dynamically inserted -->
-      </div>
+        </div>
       <button id="next-btn" style="display:none;">Next</button>
     </div>
   </div>
 
-  <!-- Result Section (Score + Leaderboard) -->
   <div class="leaderboard" style="display: none;">
     <h2>🎉 Your Score: <span id="finalScore"></span></h2>
     <h3>🏆 Top 10 Users</h3>
@@ -145,10 +139,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
         <tr><td colspan="4">Loading...</td></tr>
       </tbody>
     </table>
-    <button onclick="location.reload()" class="btn">Play Again</button>
+    <div>
+      <button onclick="location.reload()" class="btn">Play Again</button>
+      <button id="viewAttemptsBtn" class="btn">View Attempted Questions</button>
+    </div>
+  </div>
+ 
+   <div id="attemptedPopup">
+    <div class="popup-content">
+      <span class="close-btn" id="closeAttempted">&times;</span>
+      <h3 class="attempt-title">📋 Your Attempted Questions</h3>
+      <ol id="attemptList"></ol>
+    </div>
   </div>
 
-  <!-- Footer -->
   <footer class="site-footer">
     <p>&copy; 2025 QuizWeb. All rights reserved.</p>
   </footer>
@@ -314,7 +318,7 @@ function loadQuestionsForQuiz() {
         {
             type: "fillblank",
             question: "To start a PHP script, use the tag _____ .",
-            correctAnswer: "<?php"
+            correctAnswer: "< ?php"
         },
         {
             type: "fillblank",
@@ -377,8 +381,18 @@ let currentQuestionIndex = 0;
 let score = 0;
 let timer;
 let timeLeft = 15;
+let attemptedQuestions = [];
 
-// Limit input max value to 50
+// Escape helper
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;');
+}
+
+// Limit input max value to 20
 quizInput.addEventListener("input", () => {
     let value = parseInt(quizInput.value, 10);
     if (value > 20) {
@@ -388,30 +402,33 @@ quizInput.addEventListener("input", () => {
     }
 });
 
-startBtn.addEventListener("click", () => {
-    const quizNum = parseInt(quizInput.value, 10);
+startBtn.addEventListener('click', () => {
+  const quizNum = parseInt(quizInput.value, 10);
 
-    if (!quizNum || quizNum < 1 || quizNum > 20) {
-        errorMsg.textContent = "Please enter a valid quiz number between 1 and 20.";
-        return;
-    }
+  if (isNaN(quizNum) || quizNum < 1 || quizNum > 20) {
+    errorMsg.textContent = '⚠ Please enter a valid quiz number between 1 and 20.';
+    quizInput.focus();
+    return;
+  }
 
-    errorMsg.textContent = "";
-    questions = loadQuestionsForQuiz();
+  errorMsg.textContent = '';
 
-    // Select quizNum random questions (or all if less)
-    selectedQuestions = getRandomQuestions(questions, quizNum);
+  // Load questions and pick N random
+  questions = loadQuestionsForQuiz();
+  selectedQuestions = getRandomQuestions(questions, quizNum);
 
-    currentQuestionIndex = 0;
-    score = 0;
+  // Reset state
+  currentQuestionIndex = 0;
+  score = 0;
+  attemptedQuestions = [];
 
-    // Hide start UI, show quiz UI
-    quizContainer.style.display = "none";
-    app.style.display = "block";
-    quizDiv.style.display = "block";
+  // Switch UI
+  quizContainer.style.display = 'none';
+  app.style.display = 'block';
+  quizDiv.style.display = 'block';
+  nextBtn.style.display = 'none';
 
-    nextBtn.style.display = "none";
-    showQuestion();
+  showQuestion();
 });
 
 function getRandomQuestions(arr, n) {
@@ -462,24 +479,31 @@ function showQuestion() {
         submitBtn.classList.add("btn");
 
         submitBtn.onclick = () => {
-            clearInterval(timer); // ✅ Stop timer when submitted
+    clearInterval(timer); // ✅ Stop timer when submitted
 
-            const userAnswer = input.value.trim().toLowerCase();
-            const correct = current.correctAnswer.toLowerCase();
+    const userAnswerRaw = input.value.trim();
+    const userAnswer = userAnswerRaw.toLowerCase();
+    const correct = current.correctAnswer.toLowerCase();
 
-            if (userAnswer === correct) {
-                score++;
-                input.classList.add("correct");
-            } else {
-                input.classList.add("incorrect");
-                input.value = `${userAnswer}  (Correct: ${current.correctAnswer})`;
-            }
+    // Store attempt for review popup
+    attemptedQuestions.push({
+        question: escapeHTML(current.question),
+        userAnswer: userAnswerRaw || "No answer",
+        correctAnswer: current.correctAnswer
+    });
 
-            input.disabled = true;
-            submitBtn.disabled = true;
-            nextBtn.style.display = "block";
-        };
+    if (userAnswer === correct) {
+        score++;
+        input.classList.add("correct");
+    } else {
+        input.classList.add("incorrect");
+        input.value = `${userAnswerRaw}  (Correct: ${current.correctAnswer})`;
+    }
 
+    input.disabled = true;
+    submitBtn.disabled = true;
+    nextBtn.style.display = "block";
+    };
         answerButtons.appendChild(submitBtn);
     }
 
@@ -525,36 +549,73 @@ function showCorrectAnswerOnTimeout() {
 
     if (current.type === "fillblank") {
         const input = document.getElementById("fillInput");
+        let userAns = "";
+
         if (input && !input.disabled) {
+            userAns = input.value.trim();
             input.classList.add("incorrect");
-            input.value = ` (Correct: ${current.correctAnswer})`;
+            input.value = `(Correct: ${current.correctAnswer})`;
             input.disabled = true;
         }
 
+        // Save attempt
+        attemptedQuestions.push({
+            question: escapeHTML(current.question),
+            userAnswer: userAns || "No answer",
+            correctAnswer: current.correctAnswer
+        });
+
         const submitBtn = answerButtons.querySelector("button");
-        if (submitBtn) {
-            submitBtn.disabled = true;
-        }
+        if (submitBtn) submitBtn.disabled = true;
 
     } else {
+        let correctText = "";
+
+        if (current.type === "mcq" && current.answers) {
+            const correctAns = current.answers.find(a => a.correct);
+            correctText = correctAns ? correctAns.text : "";
+        } else if (current.type === "truefalse") {
+            correctText = current.correct ? "True" : "False";
+        }
+
+        // Mark correct answer
         Array.from(answerButtons.children).forEach(button => {
             if (button.dataset.correct === "true") {
                 button.classList.add("correct");
             }
             button.disabled = true;
         });
+
+        // Save attempt
+        attemptedQuestions.push({
+            question: escapeHTML(current.question),
+            userAnswer: "No answer",
+            correctAnswer: correctText
+        });
     }
 
     nextBtn.style.display = "block";
 }
-
 
 function selectAnswer(e) {
     clearInterval(timer);
 
     const selectedBtn = e.target;
     const isCorrect = selectedBtn.dataset.correct === "true";
+    const current = selectedQuestions[currentQuestionIndex];
 
+    attemptedQuestions.push({
+        question: escapeHTML(current.question),
+        userAnswer: selectedBtn.textContent,
+        correctAnswer: current.type === "mcq" || current.type === "truefalse"
+            ? (current.answers
+                ? current.answers.find(ans => ans.correct)?.text
+                : (current.correct ? "True" : "False"))
+            : current.correctAnswer
+    });
+
+
+    // Mark selected answer
     if (isCorrect) {
         selectedBtn.classList.add("correct");
         score++;
@@ -562,6 +623,7 @@ function selectAnswer(e) {
         selectedBtn.classList.add("incorrect");
     }
 
+    // Highlight correct answer
     Array.from(answerButtons.children).forEach(button => {
         if (button.dataset.correct === "true") {
             button.classList.add("correct");
@@ -569,8 +631,16 @@ function selectAnswer(e) {
         button.disabled = true;
     });
 
+
     nextBtn.style.display = "block";
     resetTimer();
+}
+
+// Function to escape HTML tags for display
+function escapeTags(str) {
+    return String(str)
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 }
 
 function showScore() {
@@ -585,7 +655,33 @@ function showScore() {
     // Show leaderboard section
     document.querySelector(".leaderboard").style.display = "block";
 
-    // Save score to server using php.php
+    // ✅ Populate attempted questions list
+    const attemptList = document.getElementById("attemptList");
+    attemptList.innerHTML = "";
+
+    attemptedQuestions.forEach((item, index) => {
+        // Use raw for checking, escape for display
+        const rawUserAns = item.userAnswer && item.userAnswer.trim() !== "" ? item.userAnswer : "No answer";
+        const rawCorrectAns = item.correctAnswer || "";
+
+        const isCorrect = rawUserAns.trim().toLowerCase() === rawCorrectAns.trim().toLowerCase();
+
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <div class="attempt-question">
+                <strong>${index + 1}.</strong> ${item.question} 
+            </div>
+            <div class="attempt-answer ${isCorrect ? 'correct' : 'incorrect'}">
+                Your Answer: ${escapeTags(rawUserAns)}
+            </div>
+            <div class="correct-answer">
+                Correct Answer: ${escapeTags(rawCorrectAns)}
+            </div>
+        `;
+        attemptList.appendChild(li);
+    });
+
+    // Save score to server
     fetch("php.php?action=save_score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -596,31 +692,31 @@ function showScore() {
     }).then(() => {
         // Fetch top 10 after saving
         fetch("php.php?action=top10")
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-    return response.json();
-  })
-  .then(data => {
-    const tbody = document.getElementById("leaderboard-body");
-    tbody.innerHTML = "";
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.getElementById("leaderboard-body");
+                tbody.innerHTML = "";
 
-    data.forEach((user, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${user.username}</td>
-        <td>${user.total_score}</td>
-        <td>${user.total_questions}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  })
-  .catch(error => {
-    console.error("Leaderboard fetch error:", error);
-    document.getElementById("leaderboard-body").innerHTML = `
-      <tr><td colspan="4">Error loading leaderboard.</td></tr>
-    `;
-  });
+                data.forEach((user, index) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${user.username}</td>
+                        <td>${user.total_score}</td>
+                        <td>${user.total_questions}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error("Leaderboard fetch error:", error);
+                document.getElementById("leaderboard-body").innerHTML = `
+                    <tr><td colspan="4">Error loading leaderboard.</td></tr>
+                `;
+            });
     }).catch(error => {
         console.error("Score saving failed:", error);
     });
@@ -645,45 +741,57 @@ nextBtn.addEventListener("click", () => {
         showScore();
     }
 });
-document.getElementById("loginForm").addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent the default form submission
+/* ===========================
+   Login form (if present)
+   =========================== */
+   const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const formData = new FormData(loginForm);
+    fetch("login.php", { method: "POST", body: formData })
+      .then(r => r.text())
+      .then(data => {
+        const msgDiv = document.getElementById("message");
+        if (msgDiv) {
+          msgDiv.innerHTML = data;
+          msgDiv.style.color = data.includes("successful") ? "green" : "red";
+        }
+      })
+      .catch(() => {
+        const msgDiv = document.getElementById("message");
+        if (msgDiv) msgDiv.textContent = "An error occurred.";
+      });
+  });
+}
 
-    const form = e.target;
-    const formData = new FormData(form);
-
-    fetch("login.php", {
-        method: "POST",
-        body: formData,
-    })
-        .then((response) => response.text())
-        .then((data) => {
-            const msgDiv = document.getElementById("message");
-            msgDiv.innerHTML = data;
-            msgDiv.style.color = data.includes("successful") ? "green" : "red";
-        })
-        .catch((error) => {
-            document.getElementById("message").textContent = "An error occurred.";
-        });
-});
-// memu
+// =======================
+// ATTEMPTED QUESTIONS POPUP
+// =======================
 document.addEventListener("DOMContentLoaded", function () {
-    const toggleBtn = document.getElementById("menu-toggle");
-    const menu = document.getElementById("main-menu");
+  const attemptBtn = document.getElementById("viewAttemptsBtn");
+  const popup = document.getElementById("attemptedPopup");
+  const closeBtn = document.getElementById("closeAttempted");
 
-    if (toggleBtn && menu) {
-        toggleBtn.addEventListener("click", () => {
-            menu.classList.toggle("show");
-        });
+  if (attemptBtn) {
+    attemptBtn.addEventListener("click", () => {
+      popup.style.display = "flex"; // open popup
+    });
+  }
 
-        // Optional: Hide menu when link is clicked on small screens
-        const links = menu.querySelectorAll("a");
-        links.forEach(link => {
-            link.addEventListener("click", () => {
-                menu.classList.remove("show");
-            });
-        });
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      popup.style.display = "none"; // close popup
+    });
+  }
+
+  // Close popup if clicked outside content
+  popup.addEventListener("click", (e) => {
+    if (e.target === popup) {
+      popup.style.display = "none";
     }
+  });
 });
 </script>
 </body>
-</html>     
+</html>
