@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     echo "Score saved successfully!";
     exit;
 }
+
 // Handle leaderboard fetch
 if ($_SERVER['REQUEST_METHOD'] === 'GET'
     && isset($_GET['action'])
@@ -62,629 +63,693 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET'
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <title>C++ Quiz</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>C++ Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- Header -->
-  <header class="site-header">
-  <div class="header-container">
-    <h1>Quiz For Computer Languages</h1>
-    <button id="menu-toggle" aria-label="Toggle Menu">&#9776;</button>
-    <nav id="nav-links">
-      <?php if (isset($_SESSION['username'])): ?>
-        <a href="profile.php">Profile</a>
-        <a href="logout.php">Logout</a>
-      <?php else: ?>
-        <a href="login.php">Login</a>
-        <a href="register.php">Register</a>
-      <?php endif; ?>
+    <header class="site-header">
+        <div class="header-container">
+            <h1>Quiz For Computer Languages</h1>
+            <button id="menu-toggle" aria-label="Toggle Menu">&#9776;</button>
+            <nav id="nav-links">
+                <?php if (isset($_SESSION['username'])): ?>
+                    <a href="profile.php">Profile</a>
+                    <a href="logout.php">Logout</a>
+                <?php else: ?>
+                    <a href="login.php">Login</a>
+                    <a href="register.php">Register</a>
+                <?php endif; ?>
+            </nav>
+        </div>
+    </header>
+
+    <nav class="menu" id="main-menu">
+        <a href="index.php">HOME</a>
+        <a href="html.php">HTML</a>
+        <a href="java.php">JAVA</a>
+        <a href="python.php">PYTHON</a>
+        <a href="php.php">PHP</a>
+        <a href="#" class="active">C++</a>
     </nav>
-  </div>
-</header>
 
-  <!-- Navigation Menu -->
-  <nav class="menu" id="main-menu">
-    <a href="index.php">HOME</a>
-    <a href="html.php">HTML</a>
-    <a href="java.php">JAVA</a>
-    <a href="python.php">PYTHON</a>
-    <a href="php.php">PHP</a>
-    <a href="#" class="active">C++</a>
-  </nav>
-
-  <!-- Quiz Entry Section -->
-  <div class="quiz-container">
-    <h2>Enter Quiz Number</h2>
-    <input type="number" id="quizNumber" min="1" max="20" />
-    <button id="startBtn">Start Quiz</button>
-    <p id="errorMsg" style="color: red;"></p>
-  </div>
-
-  <!-- Quiz Section -->
-  <div class="app">
-    <div class="heading-row">
-      <h1>Quiz C++</h1>
-      <span id="timer">Time left: 15s</span>
+    <div class="quiz-container">
+        <h2>Enter Quiz Number</h2>
+        <input type="number" id="quizNumber" min="1" max="20" />
+        <button id="startBtn">Start Quiz</button>
+        <p id="errorMsg" style="color: red;"></p>
     </div>
-    <div class="quiz" style="display: none;">
-      <h2 id="question">Question</h2>
-      <div id="answer-buttons">
-        <!-- Buttons will be dynamically inserted -->
-      </div>
-      <button id="next-btn" style="display:none;">Next</button>
+
+    <div class="app">
+        <div class="heading-row">
+            <h1>Quiz C++</h1>
+            <span id="timer">Time left: 15s</span>
+        </div>
+        <div class="quiz" style="display: none;">
+            <h2 id="question">Question</h2>
+            <div id="answer-buttons">
+                </div>
+            <button id="next-btn" style="display:none;">Next</button>
+        </div>
     </div>
-  </div>
 
-  <!-- Result Section (Score + Leaderboard) -->
-  <div class="leaderboard" style="display: none;">
-    <h2>🎉 Your Score: <span id="finalScore"></span></h2>
-    <h3>🏆 Top 10 Users</h3>
+    <div class="leaderboard" style="display: none;">
+        <h2>🎉 Your Score: <span id="finalScore"></span></h2>
+        <h3>🏆 Top 10 Users</h3>
 
-    <?php if (!isset($_SESSION['username'])): ?>
-      <p style="color: #f44336; font-weight: bold; margin-bottom: 10px;">
-        🔒 To see your name in the leaderboard, please 
-        <a href="register.php" style="color: #03dac6;">Register</a> or 
-        <a href="login.php" style="color: #03dac6;">Login</a>.
-      </p>
-    <?php endif; ?>
+        <?php if (!isset($_SESSION['username'])): ?>
+            <p style="color: #f44336; font-weight: bold; margin-bottom: 10px;">
+                🔒 To see your name in the leaderboard, please 
+                <a href="register.php" style="color: #03dac6;">Register</a> or 
+                <a href="login.php" style="color: #03dac6;">Login</a>.
+            </p>
+        <?php endif; ?>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Username</th>
-          <th>Total Score</th>
-          <th>Total Questions</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboard-body">
-        <tr><td colspan="4">Loading...</td></tr>
-      </tbody>
-    </table>
-    <button onclick="location.reload()" class="btn">Play Again</button>
-  </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Username</th>
+                    <th>Total Score</th>
+                    <th>Total Questions</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <tr><td colspan="4">Loading...</td></tr>
+            </tbody>
+        </table>
+        <div>
+            <button onclick="location.reload()" class="btn">Play Again</button>
+            <button id="viewAttemptsBtn" class="btn">View Attempted Questions</button>
+        </div>
+    </div>
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <p>&copy; 2025 QuizWeb. All rights reserved.</p>
-  </footer>
-<script>
-    // Load questions function
-function loadQuestionsForQuiz() {
-    return [
-        {
-            type: "mcq",
-            question: "Who developed C++?",
-            answers: [
-                { text: "Dennis Ritchie", correct: false },
-                { text: "Bjarne Stroustrup", correct: true },
-                { text: "James Gosling", correct: false },
-                { text: "Guido van Rossum", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which of the following is the correct syntax to read input in C++?",
-            answers: [
-                { text: "cin << variable;", correct: false },
-                { text: "input(variable);", correct: false },
-                { text: "cin >> variable;", correct: true },
-                { text: "read >> variable;", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which symbol is used for single-line comments in C++?",
-            answers: [
-                { text: "//", correct: true },
-                { text: "/*", correct: false },
-                { text: "#", correct: false },
-                { text: "<!--", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which header file is required for `cout` and `cin`?",
-            answers: [
-                { text: "#include <stdio.h>", correct: false },
-                { text: "#include <iostream>", correct: true },
-                { text: "#include <stdlib.h>", correct: false },
-                { text: "#include <conio.h>", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which is the correct way to declare a class in C++?",
-            answers: [
-                { text: "class MyClass {}", correct: false },
-                { text: "MyClass class {}", correct: false },
-                { text: "class MyClass {};", correct: true },
-                { text: "def class MyClass {}", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which keyword is used to create an object in C++?",
-            answers: [
-                { text: "define", correct: false },
-                { text: "class", correct: false },
-                { text: "new", correct: true },
-                { text: "make", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "What does OOP stand for?",
-            answers: [
-                { text: "Object-Oriented Programming", correct: true },
-                { text: "Open Object Protocol", correct: false },
-                { text: "Operating Oriented Program", correct: false },
-                { text: "Only One Program", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which access specifier allows access to all classes?",
-            answers: [
-                { text: "private", correct: false },
-                { text: "protected", correct: false },
-                { text: "public", correct: true },
-                { text: "global", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which keyword is used to inherit a class?",
-            answers: [
-                { text: "inherits", correct: false },
-                { text: "extends", correct: false },
-                { text: "public", correct: true },
-                { text: "child", correct: false }
-            ]
-        },
-        {
-            type: "mcq",
-            question: "Which function is automatically called when an object is created?",
-            answers: [
-                { text: "destructor", correct: false },
-                { text: "constructor", correct: true },
-                { text: "init()", correct: false },
-                { text: "create()", correct: false }
-            ]
-        },
-        {
-            type: "truefalse",
-            question: "C++ supports both procedural and object-oriented programming.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "C++ was developed before the C language.",
-            correct: false
-        },
-        {
-            type: "truefalse",
-            question: "C++ supports function overloading.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "Private members of a class can be accessed directly outside the class.",
-            correct: false
-        },
-        {
-            type: "truefalse",
-            question: "C++ programs must have a `main()` function.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "`#include` is a preprocessor directive in C++.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "In C++, `int` is used to declare a floating-point number.",
-            correct: false
-        },
-        {
-            type: "truefalse",
-            question: "`new` is used to allocate memory dynamically in C++.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "A destructor in C++ starts with a tilde (~) symbol.",
-            correct: true
-        },
-        {
-            type: "truefalse",
-            question: "C++ supports multiple inheritance.",
-            correct: true
-        },
-        {
-            type: "fillblank",
-            question: "The keyword used to create a class in C++ is _____ .",
-            correctAnswer: "class"
-        },
-        {
-            type: "fillblank",
-            question: "The function where program execution starts is _____ .",
-            correctAnswer: "main"
-        },
-        {
-            type: "fillblank",
-            question: "To output text in C++, we use _____ .",
-            correctAnswer: "cout"
-        },
-        {
-            type: "fillblank",
-            question: "To take input in C++, we use _____ .",
-            correctAnswer: "cin"
-        },
-        {
-            type: "fillblank",
-            question: "To include libraries, we use the _____ directive.",
-            correctAnswer: "#include"
-        },
-        {
-            type: "fillblank",
-            question: "A member function with the same name as the class is called a _____ .",
-            correctAnswer: "constructor"
-        },
-        {
-            type: "fillblank",
-            question: "To allocate memory dynamically, we use the _____ keyword.",
-            correctAnswer: "new"
-        },
-        {
-            type: "fillblank",
-            question: "To destroy an object and free memory, we use the _____ keyword.",
-            correctAnswer: "delete"
-        },
-        {
-            type: "fillblank",
-            question: "The operator used for scope resolution is _____ .",
-            correctAnswer: "::"
-        },
-        {
-            type: "fillblank",
-            question: "Functions with the same name but different parameters are called _____ functions.",
-            correctAnswer: "overloaded"
+    <div id="attemptedPopup">
+        <div class="popup-content">
+            <span class="close-btn" id="closeAttempted">&times;</span>
+            <h3 class="attempt-title">📋 Your Attempted Questions</h3>
+            <ol id="attemptList"></ol>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2025 QuizWeb. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Load questions function
+        function loadQuestionsForQuiz() {
+            return [
+                {
+                    type: "mcq",
+                    question: "Who developed C++?",
+                    answers: [
+                        { text: "Dennis Ritchie", correct: false },
+                        { text: "Bjarne Stroustrup", correct: true },
+                        { text: "James Gosling", correct: false },
+                        { text: "Guido van Rossum", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which of the following is the correct syntax to read input in C++?",
+                    answers: [
+                        { text: "cin << variable;", correct: false },
+                        { text: "input(variable);", correct: false },
+                        { text: "cin >> variable;", correct: true },
+                        { text: "read >> variable;", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which symbol is used for single-line comments in C++?",
+                    answers: [
+                        { text: "//", correct: true },
+                        { text: "/*", correct: false },
+                        { text: "#", correct: false },
+                        { text: "<!--", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which header file is required for `cout` and `cin`?",
+                    answers: [
+                        { text: "#include <stdio.h>", correct: false },
+                        { text: "#include <iostream>", correct: true },
+                        { text: "#include <stdlib.h>", correct: false },
+                        { text: "#include <conio.h>", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which is the correct way to declare a class in C++?",
+                    answers: [
+                        { text: "class MyClass {}", correct: false },
+                        { text: "MyClass class {}", correct: false },
+                        { text: "class MyClass {};", correct: true },
+                        { text: "def class MyClass {}", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which keyword is used to create an object in C++?",
+                    answers: [
+                        { text: "define", correct: false },
+                        { text: "class", correct: false },
+                        { text: "new", correct: true },
+                        { text: "make", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "What does OOP stand for?",
+                    answers: [
+                        { text: "Object-Oriented Programming", correct: true },
+                        { text: "Open Object Protocol", correct: false },
+                        { text: "Operating Oriented Program", correct: false },
+                        { text: "Only One Program", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which access specifier allows access to all classes?",
+                    answers: [
+                        { text: "private", correct: false },
+                        { text: "protected", correct: false },
+                        { text: "public", correct: true },
+                        { text: "global", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which keyword is used to inherit a class?",
+                    answers: [
+                        { text: "inherits", correct: false },
+                        { text: "extends", correct: false },
+                        { text: "public", correct: true },
+                        { text: "child", correct: false }
+                    ]
+                },
+                {
+                    type: "mcq",
+                    question: "Which function is automatically called when an object is created?",
+                    answers: [
+                        { text: "destructor", correct: false },
+                        { text: "constructor", correct: true },
+                        { text: "init()", correct: false },
+                        { text: "create()", correct: false }
+                    ]
+                },
+                {
+                    type: "truefalse",
+                    question: "C++ supports both procedural and object-oriented programming.",
+                    correct: true
+                },
+                {
+                    type: "truefalse",
+                    question: "C++ was developed before the C language.",
+                    correct: false
+                },
+                {
+                    type: "truefalse",
+                    question: "C++ supports function overloading.",
+                    correct: true
+                },
+                {
+                    type: "truefalse",
+                    question: "Private members of a class can be accessed directly outside the class.",
+                    correct: false
+                },
+                {
+                    type: "truefalse",
+                    question: "C++ programs must have a `main()` function.",
+                    correct: true
+                },
+                {
+                    type: "truefalse",
+                    question: "`#include` is a preprocessor directive in C++.",
+                    correct: true
+                },
+                {
+                    type: "truefalse",
+                    question: "In C++, `int` is used to declare a floating-point number.",
+                    correct: false
+                },
+                {
+                    type: "truefalse",
+                    question: "`new` is used to allocate memory dynamically in C++.",
+                    correct: true
+                },
+                {
+                    type: "truefalse",
+                    question: "A destructor in C++ starts with a tilde (~) symbol.",
+                    correct: true
+                },
+                {
+                    type: "truefalse",
+                    question: "C++ supports multiple inheritance.",
+                    correct: true
+                },
+                {
+                    type: "fillblank",
+                    question: "The keyword used to create a class in C++ is _____ .",
+                    correctAnswer: "class"
+                },
+                {
+                    type: "fillblank",
+                    question: "The function where program execution starts is _____ .",
+                    correctAnswer: "main"
+                },
+                {
+                    type: "fillblank",
+                    question: "To output text in C++, we use _____ .",
+                    correctAnswer: "cout"
+                },
+                {
+                    type: "fillblank",
+                    question: "To take input in C++, we use _____ .",
+                    correctAnswer: "cin"
+                },
+                {
+                    type: "fillblank",
+                    question: "To include libraries, we use the _____ directive.",
+                    correctAnswer: "#include"
+                },
+                {
+                    type: "fillblank",
+                    question: "A member function with the same name as the class is called a _____ .",
+                    correctAnswer: "constructor"
+                },
+                {
+                    type: "fillblank",
+                    question: "To allocate memory dynamically, we use the _____ keyword.",
+                    correctAnswer: "new"
+                },
+                {
+                    type: "fillblank",
+                    question: "To destroy an object and free memory, we use the _____ keyword.",
+                    correctAnswer: "delete"
+                },
+                {
+                    type: "fillblank",
+                    question: "The operator used for scope resolution is _____ .",
+                    correctAnswer: "::"
+                },
+                {
+                    type: "fillblank",
+                    question: "Functions with the same name but different parameters are called _____ functions.",
+                    correctAnswer: "overloaded"
+                }
+            ];
         }
-    ];
-}
 
-// DOM elements
-const quizInput = document.getElementById("quizNumber");
-const startBtn = document.getElementById("startBtn");
-const errorMsg = document.getElementById("errorMsg");
-const quizContainer = document.querySelector(".quiz-container");
-const app = document.querySelector(".app");
-const quizDiv = document.querySelector(".quiz");
-const questionEl = document.getElementById("question");
-const answerButtons = document.getElementById("answer-buttons");
-const nextBtn = document.getElementById("next-btn");
-const timerElement = document.getElementById("timer");
+        // DOM elements
+        const quizInput = document.getElementById("quizNumber");
+        const startBtn = document.getElementById("startBtn");
+        const errorMsg = document.getElementById("errorMsg");
+        const quizContainer = document.querySelector(".quiz-container");
+        const app = document.querySelector(".app");
+        const quizDiv = document.querySelector(".quiz");
+        const questionEl = document.getElementById("question");
+        const answerButtons = document.getElementById("answer-buttons");
+        const nextBtn = document.getElementById("next-btn");
+        const timerElement = document.getElementById("timer");
 
-let questions = [];
-let selectedQuestions = [];
-let currentQuestionIndex = 0;
-let score = 0;
-let timer;
-let timeLeft = 15;
+        let questions = [];
+        let selectedQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let timer;
+        let timeLeft = 15;
+        let attemptedQuestions = [];
 
-// Limit input max value to 50
-quizInput.addEventListener("input", () => {
-    let value = parseInt(quizInput.value, 10);
-    if (value > 20) {
-        quizInput.value = 20;
-    } else if (value < 1) {
-        quizInput.value = "";
-    }
-});
+        // Escape HTML tags in question text
+        function escapeHTML(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
 
-startBtn.addEventListener("click", () => {
-    const quizNum = parseInt(quizInput.value, 10);
-
-    if (!quizNum || quizNum < 1 || quizNum > 20) {
-        errorMsg.textContent = "Please enter a valid quiz number between 1 and 20.";
-        return;
-    }
-
-    errorMsg.textContent = "";
-    questions = loadQuestionsForQuiz();
-
-    // Select quizNum random questions (or all if less)
-    selectedQuestions = getRandomQuestions(questions, quizNum);
-
-    currentQuestionIndex = 0;
-    score = 0;
-
-    // Hide start UI, show quiz UI
-    quizContainer.style.display = "none";
-    app.style.display = "block";
-    quizDiv.style.display = "block";
-
-    nextBtn.style.display = "none";
-    showQuestion();
-});
-
-function getRandomQuestions(arr, n) {
-    const shuffled = arr.slice().sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, n);
-}
-
-function showQuestion() {
-    resetState();
-    resetTimer();
-
-    if (currentQuestionIndex >= selectedQuestions.length) {
-        showScore();
-        return;
-    }
-
-    const current = selectedQuestions[currentQuestionIndex];
-    questionEl.textContent = `${currentQuestionIndex + 1}. ${current.question}`;
-
-    if (current.type === "mcq") {
-        current.answers.forEach(ans => {
-            const btn = document.createElement("button");
-            btn.classList.add("btn");
-            btn.textContent = ans.text;
-            btn.dataset.correct = ans.correct;
-            btn.onclick = selectAnswer;
-            answerButtons.appendChild(btn);
+        // Limit input max value to 20
+        quizInput.addEventListener("input", () => {
+            let value = parseInt(quizInput.value, 10);
+            if (value > 20) {
+                quizInput.value = 20;
+            } else if (value < 1) {
+                quizInput.value = "";
+            }
         });
-    } else if (current.type === "truefalse") {
-        ["True", "False"].forEach(val => {
-            const btn = document.createElement("button");
-            btn.classList.add("btn");
-            btn.textContent = val;
-            btn.dataset.correct = (val.toLowerCase() === String(current.correct).toLowerCase());
-            btn.onclick = selectAnswer;
-            answerButtons.appendChild(btn);
-        });
-    } else if (current.type === "fillblank") {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.id = "fillInput";
-        input.placeholder = "Type your answer here";
-        input.classList.add("btn");
-        answerButtons.appendChild(input);
 
-        const submitBtn = document.createElement("button");
-        submitBtn.textContent = "Submit";
-        submitBtn.classList.add("btn");
+        startBtn.addEventListener("click", () => {
+            const quizNum = parseInt(quizInput.value, 10);
 
-        submitBtn.onclick = () => {
-            clearInterval(timer); // ✅ Stop timer when submitted
-
-            const userAnswer = input.value.trim().toLowerCase();
-            const correct = current.correctAnswer.toLowerCase();
-
-            if (userAnswer === correct) {
-                score++;
-                input.classList.add("correct");
-            } else {
-                input.classList.add("incorrect");
-                input.value = `${userAnswer}  (Correct: ${current.correctAnswer})`;
+            // Validate quiz number input
+            if (isNaN(quizNum) || quizNum < 1 || quizNum > 20) {
+                errorMsg.textContent = "⚠ Please enter a valid quiz number between 1 and 20.";
+                quizInput.focus();
+                return;
             }
 
-            input.disabled = true;
-            submitBtn.disabled = true;
-            nextBtn.style.display = "block";
-        };
+            errorMsg.textContent = "";
 
-        answerButtons.appendChild(submitBtn);
-    }
+            // Load all questions
+            questions = loadQuestionsForQuiz();
 
-    nextBtn.style.display = "none";
-    startTimer();
-}
+            // Select quizNum random questions
+            selectedQuestions = getRandomQuestions(questions, quizNum);
+
+            // Reset quiz state
+            currentQuestionIndex = 0;
+            score = 0;
+            attemptedQuestions = []; // reset attempted questions for review
+
+            // Switch UI to quiz view
+            quizContainer.style.display = "none";
+            app.style.display = "block";
+            quizDiv.style.display = "block";
+            nextBtn.style.display = "none";
+
+            // Start first question
+            showQuestion();
+        });
 
 
-function resetState() {
-    nextBtn.style.display = "none";
-    while (answerButtons.firstChild) {
-        answerButtons.removeChild(answerButtons.firstChild);
-    }
-}
-
-function startTimer() {
-    timeLeft = 15;
-    timerElement.textContent = `Time left: ${timeLeft}s`;
-    timerElement.classList.remove("warning");
-    timer = setInterval(() => {
-        timeLeft--;
-        timerElement.textContent = `Time left: ${timeLeft}s`;
-
-        if (timeLeft <= 5) {
-            timerElement.classList.add("warning");
+        function getRandomQuestions(arr, n) {
+            const shuffled = arr.slice().sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, n);
         }
 
-        if (timeLeft <= 0) {
+        function showQuestion() {
+            resetState();
+            resetTimer();
+
+            if (currentQuestionIndex >= selectedQuestions.length) {
+                showScore();
+                return;
+            }
+
+            const current = selectedQuestions[currentQuestionIndex];
+            questionEl.textContent = `${currentQuestionIndex + 1}. ${current.question}`;
+
+            if (current.type === "mcq") {
+                current.answers.forEach(ans => {
+                    const btn = document.createElement("button");
+                    btn.classList.add("btn");
+                    btn.textContent = ans.text;
+                    btn.dataset.correct = ans.correct;
+                    btn.onclick = selectAnswer;
+                    answerButtons.appendChild(btn);
+                });
+            } else if (current.type === "truefalse") {
+                ["True", "False"].forEach(val => {
+                    const btn = document.createElement("button");
+                    btn.classList.add("btn");
+                    btn.textContent = val;
+                    btn.dataset.correct = (val.toLowerCase() === String(current.correct).toLowerCase());
+                    btn.onclick = selectAnswer;
+                    answerButtons.appendChild(btn);
+                });
+            } else if (current.type === "fillblank") {
+                const input = document.createElement("input");
+                input.type = "text";
+                input.id = "fillInput";
+                input.placeholder = "Type your answer here";
+                input.classList.add("btn");
+                answerButtons.appendChild(input);
+
+                const submitBtn = document.createElement("button");
+                submitBtn.textContent = "Submit";
+                submitBtn.classList.add("btn");
+
+                submitBtn.onclick = () => {
+                    clearInterval(timer);
+
+                    const userAnswer = input.value.trim().toLowerCase();
+                    const correct = current.correctAnswer.toLowerCase();
+
+                    attemptedQuestions.push({
+                        question: escapeHTML(selectedQuestions[currentQuestionIndex].question),
+                        userAnswer: userAnswer,
+                        correctAnswer: selectedQuestions[currentQuestionIndex].correctAnswer
+                    });
+
+                    if (userAnswer === correct) {
+                        score++;
+                        input.classList.add("correct");
+                    } else {
+                        input.classList.add("incorrect");
+                        input.value = `${userAnswer}  (Correct: ${current.correctAnswer})`;
+                    }
+
+                    input.disabled = true;
+                    submitBtn.disabled = true;
+                    nextBtn.style.display = "block";
+                };
+                answerButtons.appendChild(submitBtn);
+            }
+
+            nextBtn.style.display = "none";
+            startTimer();
+        }
+
+        function resetState() {
+            nextBtn.style.display = "none";
+            while (answerButtons.firstChild) {
+                answerButtons.removeChild(answerButtons.firstChild);
+            }
+        }
+
+        function startTimer() {
+            timeLeft = 15;
+            timerElement.textContent = `Time left: ${timeLeft}s`;
+            timerElement.classList.remove("warning");
+            timer = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = `Time left: ${timeLeft}s`;
+
+                if (timeLeft <= 5) {
+                    timerElement.classList.add("warning");
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    showCorrectAnswerOnTimeout();
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
             clearInterval(timer);
-            showCorrectAnswerOnTimeout();
-        }
-    }, 1000);
-}
-
-function resetTimer() {
-    clearInterval(timer);
-    timerElement.textContent = "";
-    timerElement.classList.remove("warning");
-}
-
-function showCorrectAnswerOnTimeout() {
-    const current = selectedQuestions[currentQuestionIndex];
-
-    if (current.type === "fillblank") {
-        const input = document.getElementById("fillInput");
-        if (input && !input.disabled) {
-            input.classList.add("incorrect");
-            input.value = ` (Correct: ${current.correctAnswer})`;
-            input.disabled = true;
+            timerElement.textContent = "";
+            timerElement.classList.remove("warning");
         }
 
-        const submitBtn = answerButtons.querySelector("button");
-        if (submitBtn) {
-            submitBtn.disabled = true;
-        }
+        function showCorrectAnswerOnTimeout() {
+            const current = selectedQuestions[currentQuestionIndex];
 
-    } else {
-        Array.from(answerButtons.children).forEach(button => {
-            if (button.dataset.correct === "true") {
-                button.classList.add("correct");
+            if (current.type === "fillblank") {
+                const input = document.getElementById("fillInput");
+                let userAns = "";
+                if (input && !input.disabled) {
+                    userAns = input.value.trim();
+                    input.classList.add("incorrect");
+                    input.value = ` (Correct: ${current.correctAnswer})`;
+                    input.disabled = true;
+                }
+                attemptedQuestions.push({
+                    question: escapeHTML(current.question),
+                    userAnswer: userAns || "No answer",
+                    correctAnswer: current.correctAnswer
+                });
+
+                const submitBtn = answerButtons.querySelector("button");
+                if (submitBtn) submitBtn.disabled = true;
+            } else {
+                let correctText = "";
+                if (current.type === "mcq" && current.answers) {
+                    const ok = current.answers.find(a => a.correct);
+                    correctText = ok ? ok.text : "";
+                } else if (current.type === "truefalse") {
+                    correctText = current.correct ? "True" : "False";
+                }
+
+                Array.from(answerButtons.children).forEach(button => {
+                    if (button.dataset.correct === "true") button.classList.add("correct");
+                    button.disabled = true;
+                });
+
+                attemptedQuestions.push({
+                    question: escapeHTML(current.question),
+                    userAnswer: "No answer",
+                    correctAnswer: correctText || current.correctAnswer || ""
+                });
             }
-            button.disabled = true;
-        });
-    }
-
-    nextBtn.style.display = "block";
-}
-
-
-function selectAnswer(e) {
-    clearInterval(timer);
-
-    const selectedBtn = e.target;
-    const isCorrect = selectedBtn.dataset.correct === "true";
-
-    if (isCorrect) {
-        selectedBtn.classList.add("correct");
-        score++;
-    } else {
-        selectedBtn.classList.add("incorrect");
-    }
-
-    Array.from(answerButtons.children).forEach(button => {
-        if (button.dataset.correct === "true") {
-            button.classList.add("correct");
+            nextBtn.style.display = "block";
         }
-        button.disabled = true;
-    });
 
-    nextBtn.style.display = "block";
-    resetTimer();
-}
+        function selectAnswer(e) {
+            clearInterval(timer);
 
-function showScore() {
-    resetState();
-    resetTimer();
+            const selectedBtn = e.target;
+            const isCorrect = selectedBtn.dataset.correct === "true";
+            const current = selectedQuestions[currentQuestionIndex];
 
-    document.getElementById("finalScore").innerText = `${score} / ${selectedQuestions.length}`;
+            let correctAnsText = "";
+            if (current.type === "mcq" || current.type === "truefalse") {
+                correctAnsText = current.answers
+                    ? current.answers.find(ans => ans.correct)?.text
+                    : (current.correct ? "True" : "False");
+            } else {
+                correctAnsText = current.correctAnswer;
+            }
 
-    // Hide quiz UI
-    document.querySelector(".app").style.display = "none";
+            attemptedQuestions.push({
+                question: escapeHTML(current.question),
+                userAnswer: selectedBtn.textContent,
+                correctAnswer: correctAnsText
+            });
 
-    // Show leaderboard section
-    document.querySelector(".leaderboard").style.display = "block";
+            if (isCorrect) {
+                selectedBtn.classList.add("correct");
+                score++;
+            } else {
+                selectedBtn.classList.add("incorrect");
+            }
 
-    // Save score to server using c++.php
-    fetch("c++.php?action=save_score", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            score: score,
-            total: selectedQuestions.length
-        })
-    }).then(() => {
-        // Fetch top 10 after saving
-        fetch("c++.php?action=top10")
-  .then(response => {
-    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-    return response.json();
-  })
-  .then(data => {
-    const tbody = document.getElementById("leaderboard-body");
-    tbody.innerHTML = "";
+            Array.from(answerButtons.children).forEach(button => {
+                if (button.dataset.correct === "true") {
+                    button.classList.add("correct");
+                }
+                button.disabled = true;
+            });
 
-    data.forEach((user, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${user.username}</td>
-        <td>${user.total_score}</td>
-        <td>${user.total_questions}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  })
-  .catch(error => {
-    console.error("Leaderboard fetch error:", error);
-    document.getElementById("leaderboard-body").innerHTML = `
-      <tr><td colspan="4">Error loading leaderboard.</td></tr>
-    `;
-  });
-    }).catch(error => {
-        console.error("Score saving failed:", error);
-    });
-}
+            nextBtn.style.display = "block";
+            resetTimer();
+        }
 
+        function escapeTags(str) {
+            return String(str)
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
 
-nextBtn.addEventListener("click", () => {
-    if (nextBtn.textContent === "Play Again") {
-        // Reset UI to start screen
-        quizContainer.style.display = "block";
-        app.style.display = "none";
-        nextBtn.textContent = "Next";
-        quizInput.value = "";
-        errorMsg.textContent = "";
-        return;
-    }
+        function showScore() {
+            resetState();
+            resetTimer();
 
-    currentQuestionIndex++;
-    if (currentQuestionIndex < selectedQuestions.length) {
-        showQuestion();
-    } else {
-        showScore();
-    }
-});
-document.getElementById("loginForm").addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent the default form submission
+            document.getElementById("finalScore").innerText = `${score} / ${selectedQuestions.length}`;
 
-    const form = e.target;
-    const formData = new FormData(form);
+            document.querySelector(".app").style.display = "none";
+            document.querySelector(".leaderboard").style.display = "block";
 
-    fetch("login.php", {
-        method: "POST",
-        body: formData,
-    })
-        .then((response) => response.text())
-        .then((data) => {
-            const msgDiv = document.getElementById("message");
-            msgDiv.innerHTML = data;
-            msgDiv.style.color = data.includes("successful") ? "green" : "red";
-        })
-        .catch((error) => {
-            document.getElementById("message").textContent = "An error occurred.";
+            const attemptList = document.getElementById("attemptList");
+            attemptList.innerHTML = "";
+
+            attemptedQuestions.forEach((item, index) => {
+                // Use raw for checking, escape for display
+                const rawUserAns = item.userAnswer && item.userAnswer.trim() !== "" ? item.userAnswer : "No answer";
+                const rawCorrectAns = item.correctAnswer || "";
+
+                const isCorrect = rawUserAns.trim().toLowerCase() === rawCorrectAns.trim().toLowerCase();
+
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <div class="attempt-question">
+                        <strong>${index + 1}.</strong> ${item.question} 
+                    </div>
+                    <div class="attempt-answer ${isCorrect ? 'correct' : 'incorrect'}">
+                        Your Answer: ${escapeTags(rawUserAns)}
+                    </div>
+                    <div class="correct-answer">
+                        Correct Answer: ${escapeTags(rawCorrectAns)}
+                    </div>
+                `;
+                attemptList.appendChild(li);
+            });
+
+            // Save score to server
+            fetch("c++.php?action=save_score", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    score: score,
+                    total: selectedQuestions.length
+                })
+            }).then(() => {
+                // Fetch top 10 after saving
+                fetch("c++.php?action=top10")
+                    .then(res => res.json())
+                    .then(data => {
+                        const tbody = document.getElementById("leaderboard-body");
+                        tbody.innerHTML = "";
+                        data.forEach((user, index) => {
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td>${index + 1}</td>
+                                    <td>${user.username}</td>
+                                    <td>${user.total_score}</td>
+                                    <td>${user.total_questions}</td>
+                                </tr>
+                            `;
+                        });
+                    })
+                    .catch(() => {
+                        document.getElementById("leaderboard-body").innerHTML = `
+                            <tr><td colspan="4">Error loading leaderboard.</td></tr>
+                        `;
+                    });
+            });
+        }
+
+        nextBtn.addEventListener("click", () => {
+            if (nextBtn.textContent === "Play Again") {
+                // Reset UI to start screen
+                quizContainer.style.display = "block";
+                app.style.display = "none";
+                nextBtn.textContent = "Next";
+                quizInput.value = "";
+                errorMsg.textContent = "";
+                return;
+            }
+
+            currentQuestionIndex++;
+            if (currentQuestionIndex < selectedQuestions.length) {
+                showQuestion();
+            } else {
+                showScore();
+            }
         });
-});
-// memu
-document.addEventListener("DOMContentLoaded", function () {
-    const toggleBtn = document.getElementById("menu-toggle");
-    const menu = document.getElementById("main-menu");
 
-    if (toggleBtn && menu) {
-        toggleBtn.addEventListener("click", () => {
-            menu.classList.toggle("show");
-        });
+        // ATTEMPTED QUESTIONS POPUP
+        document.addEventListener("DOMContentLoaded", function () {
+            const attemptBtn = document.getElementById("viewAttemptsBtn");
+            const popup = document.getElementById("attemptedPopup");
+            const closeBtn = document.getElementById("closeAttempted");
 
-        // Optional: Hide menu when link is clicked on small screens
-        const links = menu.querySelectorAll("a");
-        links.forEach(link => {
-            link.addEventListener("click", () => {
-                menu.classList.remove("show");
+            if (attemptBtn) {
+                attemptBtn.addEventListener("click", () => {
+                    popup.style.display = "flex"; // open popup
+                });
+            }
+
+            if (closeBtn) {
+                closeBtn.addEventListener("click", () => {
+                    popup.style.display = "none"; // close popup
+                });
+            }
+
+            // Close popup if clicked outside content
+            popup.addEventListener("click", (e) => {
+                if (e.target === popup) {
+                    popup.style.display = "none";
+                }
             });
         });
-    }
-});
+
     </script>
-    </body>
-    </html>
+</body>
+</html>
